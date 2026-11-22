@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AppStoreProvider } from "../lib/app-store";
+import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -81,14 +83,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { name: "theme-color", content: "#0f8a5f" },
+      { title: "KanaMori — Aprenda japonês com memórias que ficam" },
+      {
+        name: "description",
+        content: "Aprenda hiragana, katakana e kanji com imagens mnemônicas, trilhas gamificadas e revisão espaçada.",
+      },
+      { name: "author", content: "KanaMori" },
+      { property: "og:title", content: "KanaMori — Aprenda japonês com memórias que ficam" },
+      {
+        property: "og:description",
+        content: "Aprenda hiragana, katakana e kanji com imagens mnemônicas, trilhas gamificadas e revisão espaçada.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -96,6 +104,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -106,7 +120,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>
@@ -123,8 +137,21 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AppStoreProvider>
+        <div className="min-h-dvh bg-desk sm:flex sm:items-center sm:justify-center sm:py-6">
+          <div
+            id="app-frame"
+            className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-background sm:h-[min(900px,calc(100dvh-3rem))] sm:rounded-[2.75rem] sm:border-[10px] sm:border-frame sm:shadow-device"
+          >
+            <main id="app-scroll" className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
+              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+              <Outlet />
+            </main>
+            <div id="app-overlay" />
+          </div>
+        </div>
+        <Toaster position="top-center" />
+      </AppStoreProvider>
     </QueryClientProvider>
   );
 }

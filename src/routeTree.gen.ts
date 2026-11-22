@@ -10,33 +10,170 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TabsRouteImport } from './routes/_tabs'
+import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as LicaoRouteImport } from './routes/licao'
+import { Route as RevisarRouteImport } from './routes/revisar'
+import { Route as TabsAprenderRouteImport } from './routes/_tabs.aprender'
+import { Route as TabsConquistasRouteImport } from './routes/_tabs.conquistas'
+import { Route as TabsInicioRouteImport } from './routes/_tabs.inicio'
+import { Route as TabsPerfilRouteImport } from './routes/_tabs.perfil'
+import { Route as TabsRevisaoRouteImport } from './routes/_tabs.revisao'
+import { Route as EstudarRouteImport } from './routes/estudar.'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TabsRoute = TabsRouteImport.update({
+  id: '/_tabs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LicaoRoute = LicaoRouteImport.update({
+  id: '/licao',
+  path: '/licao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RevisarRoute = RevisarRouteImport.update({
+  id: '/revisar',
+  path: '/revisar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TabsAprenderRoute = TabsAprenderRouteImport.update({
+  id: '/aprender',
+  path: '/aprender',
+  getParentRoute: () => TabsRoute,
+} as any)
+const TabsConquistasRoute = TabsConquistasRouteImport.update({
+  id: '/conquistas',
+  path: '/conquistas',
+  getParentRoute: () => TabsRoute,
+} as any)
+const TabsInicioRoute = TabsInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => TabsRoute,
+} as any)
+const TabsPerfilRoute = TabsPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => TabsRoute,
+} as any)
+const TabsRevisaoRoute = TabsRevisaoRouteImport.update({
+  id: '/revisao',
+  path: '/revisao',
+  getParentRoute: () => TabsRoute,
+} as any)
+const EstudarRoute = EstudarRouteImport.update({
+  id: '/estudar/',
+  path: '/estudar/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
+  '/entrar': typeof EntrarRoute
+  '/licao': typeof LicaoRoute
+  '/revisar': typeof RevisarRoute
+  '/estudar/': typeof EstudarRoute
+  '/aprender': typeof TabsAprenderRoute
+  '/conquistas': typeof TabsConquistasRoute
+  '/inicio': typeof TabsInicioRoute
+  '/perfil': typeof TabsPerfilRoute
+  '/revisao': typeof TabsRevisaoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
+  '/entrar': typeof EntrarRoute
+  '/licao': typeof LicaoRoute
+  '/revisar': typeof RevisarRoute
+  '/estudar': typeof EstudarRoute
+  '/aprender': typeof TabsAprenderRoute
+  '/conquistas': typeof TabsConquistasRoute
+  '/inicio': typeof TabsInicioRoute
+  '/perfil': typeof TabsPerfilRoute
+  '/revisao': typeof TabsRevisaoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_tabs': typeof TabsRouteWithChildren
+  '/cadastro': typeof CadastroRoute
+  '/entrar': typeof EntrarRoute
+  '/licao': typeof LicaoRoute
+  '/revisar': typeof RevisarRoute
+  '/estudar/': typeof EstudarRoute
+  '/_tabs/aprender': typeof TabsAprenderRoute
+  '/_tabs/conquistas': typeof TabsConquistasRoute
+  '/_tabs/inicio': typeof TabsInicioRoute
+  '/_tabs/perfil': typeof TabsPerfilRoute
+  '/_tabs/revisao': typeof TabsRevisaoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/cadastro'
+    | '/entrar'
+    | '/licao'
+    | '/revisar'
+    | '/estudar/'
+    | '/aprender'
+    | '/conquistas'
+    | '/inicio'
+    | '/perfil'
+    | '/revisao'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cadastro'
+    | '/entrar'
+    | '/licao'
+    | '/revisar'
+    | '/estudar'
+    | '/aprender'
+    | '/conquistas'
+    | '/inicio'
+    | '/perfil'
+    | '/revisao'
+  id:
+    | '__root__'
+    | '/'
+    | '/_tabs'
+    | '/cadastro'
+    | '/entrar'
+    | '/licao'
+    | '/revisar'
+    | '/estudar/'
+    | '/_tabs/aprender'
+    | '/_tabs/conquistas'
+    | '/_tabs/inicio'
+    | '/_tabs/perfil'
+    | '/_tabs/revisao'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  TabsRoute: typeof TabsRouteWithChildren
+  CadastroRoute: typeof CadastroRoute
+  EntrarRoute: typeof EntrarRoute
+  LicaoRoute: typeof LicaoRoute
+  RevisarRoute: typeof RevisarRoute
+  EstudarRoute: typeof EstudarRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +185,112 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_tabs': {
+      id: '/_tabs'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof TabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/licao': {
+      id: '/licao'
+      path: '/licao'
+      fullPath: '/licao'
+      preLoaderRoute: typeof LicaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/revisar': {
+      id: '/revisar'
+      path: '/revisar'
+      fullPath: '/revisar'
+      preLoaderRoute: typeof RevisarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_tabs/aprender': {
+      id: '/_tabs/aprender'
+      path: '/aprender'
+      fullPath: '/aprender'
+      preLoaderRoute: typeof TabsAprenderRouteImport
+      parentRoute: typeof TabsRoute
+    }
+    '/_tabs/conquistas': {
+      id: '/_tabs/conquistas'
+      path: '/conquistas'
+      fullPath: '/conquistas'
+      preLoaderRoute: typeof TabsConquistasRouteImport
+      parentRoute: typeof TabsRoute
+    }
+    '/_tabs/inicio': {
+      id: '/_tabs/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof TabsInicioRouteImport
+      parentRoute: typeof TabsRoute
+    }
+    '/_tabs/perfil': {
+      id: '/_tabs/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof TabsPerfilRouteImport
+      parentRoute: typeof TabsRoute
+    }
+    '/_tabs/revisao': {
+      id: '/_tabs/revisao'
+      path: '/revisao'
+      fullPath: '/revisao'
+      preLoaderRoute: typeof TabsRevisaoRouteImport
+      parentRoute: typeof TabsRoute
+    }
+    '/estudar/': {
+      id: '/estudar/'
+      path: '/estudar'
+      fullPath: '/estudar/'
+      preLoaderRoute: typeof EstudarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface TabsRouteChildren {
+  TabsAprenderRoute: typeof TabsAprenderRoute
+  TabsConquistasRoute: typeof TabsConquistasRoute
+  TabsInicioRoute: typeof TabsInicioRoute
+  TabsPerfilRoute: typeof TabsPerfilRoute
+  TabsRevisaoRoute: typeof TabsRevisaoRoute
+}
+
+const TabsRouteChildren: TabsRouteChildren = {
+  TabsAprenderRoute: TabsAprenderRoute,
+  TabsConquistasRoute: TabsConquistasRoute,
+  TabsInicioRoute: TabsInicioRoute,
+  TabsPerfilRoute: TabsPerfilRoute,
+  TabsRevisaoRoute: TabsRevisaoRoute,
+}
+
+const TabsRouteWithChildren = TabsRoute._addFileChildren(TabsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  TabsRoute: TabsRouteWithChildren,
+  CadastroRoute: CadastroRoute,
+  EntrarRoute: EntrarRoute,
+  LicaoRoute: LicaoRoute,
+  RevisarRoute: RevisarRoute,
+  EstudarRoute: EstudarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
