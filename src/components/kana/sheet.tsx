@@ -11,7 +11,7 @@ export function Sheet({
 }: {
   open: boolean;
   onClose: () => void;
-  title?: string;
+  title?: string | undefined;
   children: ReactNode;
 }) {
   const [target, setTarget] = useState<HTMLElement | null>(null);

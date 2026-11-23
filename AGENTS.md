@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## KanaMori architecture
+- The app is a front-end-only interactive prototype: all user progress lives in `src/lib/app-store.tsx` (React context + localStorage); pure rules (streak, XP, levels, spaced repetition) live in `src/lib/progress.ts` and `src/lib/srs.ts` with tests in `src/test/progress.test.ts` — keeps rules testable and swappable for a real backend later.
+- Every screen renders inside the phone frame in `__root.tsx` (`#app-scroll` scroller, `#app-overlay` for sheets); bottom sheets must use `components/kana/sheet.tsx` so they stay inside the frame on desktop.
+- Tab screens live under the pathless `_tabs` layout (bottom nav); full-screen flows (lesson, review session, auth, study list) are top-level routes.
+- Character content (kana, kanji, mnemonics, PT-BR copy) lives in `src/data/kana.ts`; items without an illustration fall back to emoji on a tone color.

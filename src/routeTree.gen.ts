@@ -20,7 +20,7 @@ import { Route as TabsConquistasRouteImport } from './routes/_tabs.conquistas'
 import { Route as TabsInicioRouteImport } from './routes/_tabs.inicio'
 import { Route as TabsPerfilRouteImport } from './routes/_tabs.perfil'
 import { Route as TabsRevisaoRouteImport } from './routes/_tabs.revisao'
-import { Route as EstudarRouteImport } from './routes/estudar.'
+import { Route as EstudarSistemaRouteImport } from './routes/estudar.$sistema'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,9 +76,9 @@ const TabsRevisaoRoute = TabsRevisaoRouteImport.update({
   path: '/revisao',
   getParentRoute: () => TabsRoute,
 } as any)
-const EstudarRoute = EstudarRouteImport.update({
-  id: '/estudar/',
-  path: '/estudar/',
+const EstudarSistemaRoute = EstudarSistemaRouteImport.update({
+  id: '/estudar/$sistema',
+  path: '/estudar/$sistema',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -88,12 +88,12 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/licao': typeof LicaoRoute
   '/revisar': typeof RevisarRoute
-  '/estudar/': typeof EstudarRoute
   '/aprender': typeof TabsAprenderRoute
   '/conquistas': typeof TabsConquistasRoute
   '/inicio': typeof TabsInicioRoute
   '/perfil': typeof TabsPerfilRoute
   '/revisao': typeof TabsRevisaoRoute
+  '/estudar/$sistema': typeof EstudarSistemaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -101,12 +101,12 @@ export interface FileRoutesByTo {
   '/entrar': typeof EntrarRoute
   '/licao': typeof LicaoRoute
   '/revisar': typeof RevisarRoute
-  '/estudar': typeof EstudarRoute
   '/aprender': typeof TabsAprenderRoute
   '/conquistas': typeof TabsConquistasRoute
   '/inicio': typeof TabsInicioRoute
   '/perfil': typeof TabsPerfilRoute
   '/revisao': typeof TabsRevisaoRoute
+  '/estudar/$sistema': typeof EstudarSistemaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,12 +116,12 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/licao': typeof LicaoRoute
   '/revisar': typeof RevisarRoute
-  '/estudar/': typeof EstudarRoute
   '/_tabs/aprender': typeof TabsAprenderRoute
   '/_tabs/conquistas': typeof TabsConquistasRoute
   '/_tabs/inicio': typeof TabsInicioRoute
   '/_tabs/perfil': typeof TabsPerfilRoute
   '/_tabs/revisao': typeof TabsRevisaoRoute
+  '/estudar/$sistema': typeof EstudarSistemaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,12 +131,12 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/licao'
     | '/revisar'
-    | '/estudar/'
     | '/aprender'
     | '/conquistas'
     | '/inicio'
     | '/perfil'
     | '/revisao'
+    | '/estudar/$sistema'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,12 +144,12 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/licao'
     | '/revisar'
-    | '/estudar'
     | '/aprender'
     | '/conquistas'
     | '/inicio'
     | '/perfil'
     | '/revisao'
+    | '/estudar/$sistema'
   id:
     | '__root__'
     | '/'
@@ -158,12 +158,12 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/licao'
     | '/revisar'
-    | '/estudar/'
     | '/_tabs/aprender'
     | '/_tabs/conquistas'
     | '/_tabs/inicio'
     | '/_tabs/perfil'
     | '/_tabs/revisao'
+    | '/estudar/$sistema'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -173,7 +173,7 @@ export interface RootRouteChildren {
   EntrarRoute: typeof EntrarRoute
   LicaoRoute: typeof LicaoRoute
   RevisarRoute: typeof RevisarRoute
-  EstudarRoute: typeof EstudarRoute
+  EstudarSistemaRoute: typeof EstudarSistemaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -255,11 +255,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TabsRevisaoRouteImport
       parentRoute: typeof TabsRoute
     }
-    '/estudar/': {
-      id: '/estudar/'
-      path: '/estudar'
-      fullPath: '/estudar/'
-      preLoaderRoute: typeof EstudarRouteImport
+    '/estudar/$sistema': {
+      id: '/estudar/$sistema'
+      path: '/estudar/$sistema'
+      fullPath: '/estudar/$sistema'
+      preLoaderRoute: typeof EstudarSistemaRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -290,7 +290,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarRoute: EntrarRoute,
   LicaoRoute: LicaoRoute,
   RevisarRoute: RevisarRoute,
-  EstudarRoute: EstudarRoute,
+  EstudarSistemaRoute: EstudarSistemaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

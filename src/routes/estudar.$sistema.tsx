@@ -7,7 +7,7 @@ import { CharCircle, MnemonicArt } from "@/components/kana/mnemonic-art";
 import { isScriptId, scripts, type CharItem } from "@/data/kana";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/estudar/")({
+export const Route = createFileRoute("/estudar/$sistema")({
   validateSearch: (search: Record<string, unknown>): { pagina: number } => {
     const n = Number(search["pagina"]);
     return { pagina: Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1 };
