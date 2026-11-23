@@ -109,6 +109,7 @@
   --animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-glow: glow 1.8s ease-in-out infinite;
   --animate-burst: burst 0.7s ease-out both;
+  --animate-flicker: flicker 1.6s ease-in-out infinite;
 
   @keyframes pop {
     0% { transform: scale(0.85); }
@@ -136,6 +137,12 @@
   @keyframes glow {
     0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 45%, transparent); }
     50% { box-shadow: 0 0 0 12px color-mix(in oklab, var(--primary) 0%, transparent); }
+  }
+  @keyframes flicker {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.12) rotate(-4deg); }
+    50% { transform: scale(0.96) rotate(3deg); }
+    75% { transform: scale(1.08) rotate(-2deg); }
   }
   @keyframes burst {
     0% { opacity: 0; transform: scale(0.6); }

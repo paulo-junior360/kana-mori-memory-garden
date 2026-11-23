@@ -21,6 +21,8 @@ export type AppState = {
   srs: Record<string, number>;
   /** Kana the user added to their review deck manually. */
   myReview: string[];
+  /** Unlocked after 5 correct answers in a row inside a lesson. */
+  comboMedal: boolean;
   lastLesson: (LessonResult & { xpEarned: number; savedStreak: boolean }) | null;
 };
 
@@ -42,6 +44,7 @@ export const initialState: AppState = {
   kanjiReviewDone: false,
   srs: { "j-議": 1, "j-難": 1, "j-識": 2, "j-際": 2, "j-憲": 2, "j-歴": 3 },
   myReview: [],
+  comboMedal: false,
   lastLesson: null,
 };
 

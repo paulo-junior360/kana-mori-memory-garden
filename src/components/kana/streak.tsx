@@ -5,7 +5,15 @@ import { cn } from "@/lib/utils";
 export function StreakCard({ streak, weekDone, saved }: { streak: number; weekDone: number; saved: boolean }) {
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-card">
-      <div className="grid size-14 shrink-0 place-items-center rounded-full bg-flame-soft text-3xl">🔥</div>
+      <div className="relative grid size-14 shrink-0 place-items-center rounded-full bg-flame-soft text-3xl">
+        {saved ? (
+          <>
+            <span aria-hidden className="absolute inset-0 animate-burst rounded-full bg-flame/40" />
+            <span aria-hidden className="absolute inset-0 animate-burst rounded-full bg-star/50 [animation-delay:250ms]" />
+          </>
+        ) : null}
+        <span className={cn("relative", saved && "animate-flicker")}>🔥</span>
+      </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <span className={cn("font-display text-3xl font-semibold", saved && "animate-pop")}>{streak}</span>
@@ -35,7 +43,7 @@ export function StreakCard({ streak, weekDone, saved }: { streak: number; weekDo
 
 export function RewardsRow({ streakDay, xp }: { streakDay: number; xp: number }) {
   const rewards = [
-    { icon: "🔥", top: `${streakDay}º dia`, bottom: "na sequência" },
+    { icon: "🔥", top: `Dia ${streakDay}`, bottom: "na sequência" },
     { icon: "🎁", top: `+${xp} XP`, bottom: "de experiência" },
     { icon: "📝", top: "+1 lição", bottom: "concluída" },
   ];

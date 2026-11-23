@@ -32,6 +32,7 @@ function Achievements() {
   const medals = [
     { title: "Primeiro passo", desc: "Conclua sua primeira lição", progress: 1, goal: 1, medal: "bg-medal-bronze", icon: "🌱" },
     { title: "Estudante consistente", desc: "Estude por 7 dias seguidos", progress: Math.min(7, state.streak), goal: 7, medal: "bg-medal-silver", icon: "📅" },
+    { title: "Combo perfeito", desc: "Acerte 5 seguidas em uma lição", progress: state.comboMedal ? 1 : 0, goal: 1, medal: "bg-medal-gold", icon: "✨" },
     { title: "Ofensiva de fogo", desc: "Mantenha 30 dias seguidos", progress: Math.min(30, state.streak), goal: 30, medal: "bg-medal-gold", icon: "🔥" },
     { title: "Mestre do Hiragana", desc: "Complete todos os módulos de Hiragana", progress: 2, goal: 10, medal: "bg-medal-gold", icon: "あ" },
     { title: "Explorador do Katakana", desc: "Complete o primeiro módulo de Katakana", progress: 0, goal: 1, medal: "bg-medal-silver", icon: "ア" },

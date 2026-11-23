@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Eraser, RotateCcw, Volume2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { BackButton } from "@/components/kana/back-button";
 import { ProgressBar } from "@/components/kana/brand";
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { getItem } from "@/data/kana";
 import { useAppStore } from "@/lib/app-store";
 import { COMBO_BONUS_AT, lessonXp, type LessonResult } from "@/lib/progress";
+import { playCombo, playCorrect, playFanfare, playWrong } from "@/lib/sfx";
 import { speakJapanese } from "@/lib/speak";
 import { cn } from "@/lib/utils";
 
@@ -89,12 +91,24 @@ function Lesson() {
         setMaxCombo((m) => Math.max(m, next));
         setCorrect((c) => c + 1);
         setJustScored(true);
+        if (next === COMBO_BONUS_AT) {
+          playCombo();
+          if (!state.comboMedal) {
+            actions.unlockComboMedal();
+            toast.success("🏅 Medalha desbloqueada: Combo perfeito!", {
+              description: `${COMBO_BONUS_AT} acertos seguidos — +10 XP de bônus`,
+            });
+          }
+        } else {
+          playCorrect();
+        }
       } else {
+        playWrong();
         setCombo(0);
         setJustScored(false);
       }
     },
-    [combo],
+    [combo, state.comboMedal, actions],
   );
 
   function choose(option: string) {
@@ -121,6 +135,7 @@ function Lesson() {
       };
       setResult({ ...r, xp: lessonXp(r), savedStreak: !state.savedToday });
       actions.completeLesson(r);
+      playFanfare();
       setPhase("done");
       return;
     }

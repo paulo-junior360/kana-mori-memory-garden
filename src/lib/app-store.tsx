@@ -12,6 +12,7 @@ type Actions = {
   setName: (name: string) => void;
   setNotifications: (on: boolean) => void;
   toggleMyReview: (id: string) => void;
+  unlockComboMedal: () => void;
   resetDemo: () => void;
 };
 
@@ -61,14 +62,24 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       };
     });
   }, []);
+  const unlockComboMedal = useCallback(() => setState((s) => ({ ...s, comboMedal: true })), []);
   const resetDemo = useCallback(() => setState(initialState), []);
 
   const value = useMemo(
     () => ({
       state,
-      actions: { signIn, completeLesson, completeKanjiReview, setName, setNotifications, toggleMyReview, resetDemo },
+      actions: {
+        signIn,
+        completeLesson,
+        completeKanjiReview,
+        setName,
+        setNotifications,
+        toggleMyReview,
+        unlockComboMedal,
+        resetDemo,
+      },
     }),
-    [state, signIn, completeLesson, completeKanjiReview, setName, setNotifications, toggleMyReview, resetDemo],
+    [state, signIn, completeLesson, completeKanjiReview, setName, setNotifications, toggleMyReview, unlockComboMedal, resetDemo],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
