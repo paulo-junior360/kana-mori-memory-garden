@@ -4,7 +4,12 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { BackLink } from "@/components/kana/back-button";
 import { CharDetailSheet } from "@/components/kana/char-detail";
 import { CharCircle, MnemonicArt } from "@/components/kana/mnemonic-art";
+import { Lock } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { isScriptId, scripts, type CharItem } from "@/data/kana";
+import { useAppStore } from "@/lib/app-store";
+import { scriptsForLevel } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/estudar/$sistema")({
@@ -39,7 +44,27 @@ function Study() {
   const { sistema } = Route.useParams();
   const { pagina } = Route.useSearch();
   const [open, setOpen] = useState<CharItem | null>(null);
+  const { state } = useAppStore();
   if (!isScriptId(sistema)) return null;
+  if (!scriptsForLevel(state.profileLevel).includes(sistema)) {
+    return (
+      <div className="flex flex-1 flex-col px-6 pt-6 pb-8">
+        <BackLink to="/aprender" />
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
+          <div className="grid size-20 place-items-center rounded-full bg-lavender-soft text-lavender-foreground">
+            <Lock className="size-8" />
+          </div>
+          <h1 className="mt-5 font-display text-2xl tracking-display">Kanji bloqueado</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            O kanji faz parte do perfil intermediário/avançado. Mude seu nível de conhecimento em Editar perfil.
+          </p>
+          <Button asChild variant="hero" size="xl" className="mt-8">
+            <Link to="/perfil">Ir para o perfil</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
   const data = scripts[sistema];
   const page = Math.min(pagina, data.units.length);
   const unit = data.units[page - 1]!;

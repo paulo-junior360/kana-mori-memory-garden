@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Eye, Volume2 } from "lucide-react";
 
 import { BackLink } from "@/components/kana/back-button";
 import { ProgressBar } from "@/components/kana/brand";
+import { MnemonicArt } from "@/components/kana/mnemonic-art";
+import { ScriptTag } from "@/components/kana/script-tag";
 import { Button } from "@/components/ui/button";
-import { getItem, todaysKanjiReview } from "@/data/kana";
+import { getItem, reviewQueue } from "@/data/kana";
 import { useAppStore } from "@/lib/app-store";
+import { REVIEW_XP, scriptsForLevel } from "@/lib/progress";
 import { intervalLabel, nextBox, type Rating } from "@/lib/srs";
 import { speakJapanese } from "@/lib/speak";
 import { cn } from "@/lib/utils";
@@ -15,11 +18,11 @@ export const Route = createFileRoute("/revisar")({
   head: () => ({
     meta: [
       { title: "Sessão de revisão — KanaMori" },
-      { name: "description", content: "Revise kanji com cartões e avalie sua lembrança para agendar a próxima revisão." },
+      { name: "description", content: "Revise caracteres com cartões e avalie sua lembrança para agendar a próxima revisão." },
       { property: "og:title", content: "Sessão de revisão — KanaMori" },
       {
         property: "og:description",
-        content: "Revise kanji com cartões e avalie sua lembrança para agendar a próxima revisão.",
+        content: "Revise caracteres com cartões e avalie sua lembrança para agendar a próxima revisão.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -38,10 +41,11 @@ const RATINGS: { id: Rating; label: string; cls: string }[] = [
 function ReviewSession() {
   const { state, actions } = useAppStore();
   const navigate = useNavigate();
+  const queue = useMemo(() => reviewQueue(scriptsForLevel(state.profileLevel)), [state.profileLevel]);
   const [index, setIndex] = useState(0);
   const [shown, setShown] = useState(false);
   const [ratings, setRatings] = useState<Record<string, Rating>>({});
-  const total = todaysKanjiReview.length;
+  const total = queue.length;
   const finished = index >= total;
 
   if (finished) {
@@ -50,7 +54,9 @@ function ReviewSession() {
       <div className="flex flex-1 animate-rise flex-col px-6 pt-12 pb-8">
         <div className="text-center text-6xl">🧠</div>
         <h1 className="mt-4 text-center font-display text-3xl tracking-display">Revisão concluída!</h1>
-        <p className="mt-2 text-center text-sm text-muted-foreground">+30 XP · os kanjis voltam no momento certo</p>
+        <p className="mt-2 text-center text-sm text-muted-foreground">
+          +{REVIEW_XP} XP · cada item volta no momento certo
+        </p>
         <div className="mt-6 grid grid-cols-4 gap-2">
           {counts.map((c) => (
             <div key={c.id} className={cn("rounded-2xl p-3 text-center", c.cls)}>
@@ -61,13 +67,15 @@ function ReviewSession() {
         </div>
         <p className="mt-6 mb-2 font-display text-sm tracking-wide">Próximas revisões</p>
         <ul className="divide-y divide-border rounded-2xl border border-border bg-card shadow-card">
-          {todaysKanjiReview.map(({ id }) => {
+          {queue.map(({ id }) => {
             const k = getItem(id);
             const box = nextBox(state.srs[id] ?? 0, ratings[id] ?? "bom");
             return (
               <li key={id} className="flex items-center gap-3 px-4 py-2.5">
-                <span className="font-display text-2xl">{k.char}</span>
-                <span className="flex-1 truncate text-sm text-muted-foreground">{k.meaning}</span>
+                <span className="w-8 font-display text-2xl">{k.char}</span>
+                <span className="flex-1 truncate text-sm text-muted-foreground">
+                  {k.script === "kanji" ? k.meaning : k.romaji}
+                </span>
                 <span className="font-display text-sm text-primary">em {intervalLabel(box)}</span>
               </li>
             );
@@ -76,9 +84,9 @@ function ReviewSession() {
         <Button
           variant="hero"
           size="xl"
-          className="mt-auto"
+          className="mt-6"
           onClick={() => {
-            actions.completeKanjiReview(ratings);
+            actions.completeReview(ratings);
             navigate({ to: "/revisao" });
           }}
         >
@@ -88,8 +96,9 @@ function ReviewSession() {
     );
   }
 
-  const entry = todaysKanjiReview[index]!;
+  const entry = queue[index]!;
   const k = getItem(entry.id);
+  const isKanji = k.script === "kanji";
   const box = state.srs[entry.id] ?? 0;
 
   function rate(r: Rating) {
@@ -112,25 +121,31 @@ function ReviewSession() {
         key={entry.id}
         className="mt-8 flex flex-1 animate-rise flex-col items-center rounded-3xl border border-border bg-card p-6 text-center shadow-card"
       >
-        <span className="font-display text-xs tracking-display text-muted-foreground">
-          {shown ? "RESPOSTA" : "VOCÊ LEMBRA?"}
-        </span>
+        <div className="flex items-center gap-2">
+          <ScriptTag script={k.script} />
+          <span className="font-display text-xs tracking-display text-muted-foreground">
+            {shown ? "RESPOSTA" : "VOCÊ LEMBRA?"}
+          </span>
+        </div>
         <div className="mt-6 font-display text-[120px] leading-none">{k.char}</div>
         {shown ? (
           <div className="mt-6 w-full animate-rise space-y-3">
-            <p className="font-display text-2xl tracking-display">{k.meaning}</p>
+            <p className="font-display text-2xl tracking-display">{isKanji ? k.meaning : k.romaji}</p>
             <button
               onClick={() => speakJapanese(k.reading ?? k.char)}
               className="mx-auto flex items-center gap-2 rounded-full bg-primary-soft px-4 py-1.5 text-sm text-accent-foreground"
             >
-              <Volume2 className="size-4" /> {k.reading} · {k.romaji}
+              <Volume2 className="size-4" /> {isKanji ? `${k.reading} · ${k.romaji}` : "Ouvir"}
             </button>
-            <p className="rounded-2xl bg-muted p-3 text-sm text-muted-foreground">
-              {k.emoji} {k.mnemonic}
-            </p>
+            <div className="flex items-center gap-3 rounded-2xl bg-muted p-3 text-left text-sm text-muted-foreground">
+              <MnemonicArt item={k} className="size-10 shrink-0 text-sm" />
+              <span>{k.mnemonic}</span>
+            </div>
           </div>
         ) : (
-          <p className="mt-6 text-sm text-muted-foreground">Pense no significado e na leitura antes de virar.</p>
+          <p className="mt-6 text-sm text-muted-foreground">
+            {isKanji ? "Pense no significado e na leitura antes de virar." : "Pense em como se lê antes de virar."}
+          </p>
         )}
       </div>
 

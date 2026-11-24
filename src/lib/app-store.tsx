@@ -1,15 +1,22 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { applyLessonComplete, initialState, type AppState, type LessonResult } from "./progress";
+import {
+  applyLessonComplete,
+  applyReviewComplete,
+  initialState,
+  type AppState,
+  type LessonResult,
+  type ProfileLevel,
+} from "./progress";
 import { nextBox, type Rating } from "./srs";
 
-const STORAGE_KEY = "kanamori-state-v1";
+const STORAGE_KEY = "kanamori-state-v2";
 
 type Actions = {
-  signIn: (name: string, email: string) => void;
+  signIn: (name: string, email: string, level?: ProfileLevel) => void;
   completeLesson: (result: LessonResult) => void;
-  completeKanjiReview: (ratings: Record<string, Rating>) => void;
-  setName: (name: string) => void;
+  completeReview: (ratings: Record<string, Rating>) => void;
+  updateProfile: (name: string, level: ProfileLevel) => void;
   setNotifications: (on: boolean) => void;
   toggleMyReview: (id: string) => void;
   unlockComboMedal: () => void;
@@ -37,20 +44,27 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
 
-  const signIn = useCallback((name: string, email: string) => {
-    setState((s) => ({ ...s, userName: name.trim() || s.userName, email: email.trim() || s.email }));
+  const signIn = useCallback((name: string, email: string, level?: ProfileLevel) => {
+    setState((s) => ({
+      ...s,
+      userName: name.trim() || s.userName,
+      email: email.trim() || s.email,
+      profileLevel: level ?? s.profileLevel,
+    }));
   }, []);
   const completeLesson = useCallback((result: LessonResult) => {
     setState((s) => applyLessonComplete(s, result));
   }, []);
-  const completeKanjiReview = useCallback((ratings: Record<string, Rating>) => {
+  const completeReview = useCallback((ratings: Record<string, Rating>) => {
     setState((s) => {
       const srs = { ...s.srs };
       for (const [id, r] of Object.entries(ratings)) srs[id] = nextBox(srs[id] ?? 0, r);
-      return { ...s, srs, kanjiReviewDone: true, xp: s.xp + 30 };
+      return applyReviewComplete(s, srs);
     });
   }, []);
-  const setName = useCallback((name: string) => setState((s) => ({ ...s, userName: name })), []);
+  const updateProfile = useCallback((name: string, level: ProfileLevel) => {
+    setState((s) => ({ ...s, userName: name, profileLevel: level, reviewDone: level === s.profileLevel && s.reviewDone }));
+  }, []);
   const setNotifications = useCallback((on: boolean) => setState((s) => ({ ...s, notifications: on })), []);
   const toggleMyReview = useCallback((id: string) => {
     setState((s) => {
@@ -71,15 +85,15 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       actions: {
         signIn,
         completeLesson,
-        completeKanjiReview,
-        setName,
+        completeReview,
+        updateProfile,
         setNotifications,
         toggleMyReview,
         unlockComboMedal,
         resetDemo,
       },
     }),
-    [state, signIn, completeLesson, completeKanjiReview, setName, setNotifications, toggleMyReview, unlockComboMedal, resetDemo],
+    [state, signIn, completeLesson, completeReview, updateProfile, setNotifications, toggleMyReview, unlockComboMedal, resetDemo],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

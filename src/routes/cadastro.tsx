@@ -4,9 +4,11 @@ import { toast } from "sonner";
 
 import { AppleIcon, Divider, Field, GoogleIcon } from "@/components/kana/auth-bits";
 import { BackLink } from "@/components/kana/back-button";
+import { LevelPicker } from "@/components/kana/level-picker";
 import { Sheet } from "@/components/kana/sheet";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/app-store";
+import type { ProfileLevel } from "@/lib/progress";
 
 export const Route = createFileRoute("/cadastro")({
   head: () => ({
@@ -26,7 +28,8 @@ function Signup() {
   const { actions } = useAppStore();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
+  const [level, setLevel] = useState<ProfileLevel | null>(null);
+  const [errors, setErrors] = useState<Partial<Record<keyof typeof form | "level", string>>>({});
   const [legal, setLegal] = useState<null | "termos" | "privacidade">(null);
 
   function submit(e: FormEvent) {
@@ -35,14 +38,20 @@ function Signup() {
     if (form.name.trim().length < 2) next.name = "Digite seu nome.";
     if (!/^\S+@\S+\.\S+$/.test(form.email)) next.email = "Digite um e-mail válido.";
     if (form.password.length < 6) next.password = "A senha precisa ter pelo menos 6 caracteres.";
+    if (!level) next.level = "Escolha seu nível de conhecimento.";
     setErrors(next);
     if (Object.keys(next).length) return;
-    actions.signIn(form.name, form.email);
+    actions.signIn(form.name, form.email, level ?? "iniciante");
     toast.success(`Bem-vindo(a), ${form.name.trim().split(" ")[0]}! ようこそ`);
     navigate({ to: "/inicio" });
   }
 
   function social(provider: string) {
+    if (!level) {
+      setErrors({ level: "Escolha seu nível antes de continuar." });
+      return;
+    }
+    actions.signIn("", "", level);
     toast.success(`Conectado com ${provider}`);
     navigate({ to: "/inicio" });
   }
@@ -84,6 +93,8 @@ function Signup() {
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           error={errors.password}
         />
+        <LevelPicker value={level} onChange={setLevel} error={errors.level} />
+        <p className="-mt-2 text-xs text-muted-foreground">Você pode mudar isso depois em Perfil → Editar perfil.</p>
         <Button type="submit" variant="hero" size="xl" className="mt-2">
           Criar conta
         </Button>

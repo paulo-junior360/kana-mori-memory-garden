@@ -47,6 +47,7 @@ function Home() {
   const { state } = useAppStore();
   const timeLeft = useTimeLeftToday();
   const firstName = state.userName.split(" ")[0];
+  const advanced = state.profileLevel === "avancado";
 
   return (
     <div className="px-5 pt-8 pb-6">
@@ -75,12 +76,16 @@ function Home() {
               to="/revisao"
               className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-card transition-transform active:scale-[0.99]"
             >
-              <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-muted font-display text-3xl">学</div>
+              <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-muted font-display text-3xl">
+                {advanced ? "学" : "ア"}
+              </div>
               <div className="min-w-0 flex-1">
                 <p className="font-display text-base tracking-wide">Próxima revisão</p>
-                <p className="text-sm text-muted-foreground">Kanji intermediário</p>
+                <p className="text-sm text-muted-foreground">
+                  {advanced ? "Hiragana, katakana e kanji" : "Hiragana e katakana"}
+                </p>
                 <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="size-3.5" /> 4 min
+                  <Clock className="size-3.5" /> 6 min
                 </p>
               </div>
               <ChevronRight className="size-5 text-muted-foreground" />

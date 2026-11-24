@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Lock, Star } from "lucide-react";
 import { toast } from "sonner";
@@ -7,6 +7,8 @@ import { ProgressBar } from "@/components/kana/brand";
 import { Sheet } from "@/components/kana/sheet";
 import { Button } from "@/components/ui/button";
 import { scripts, type ScriptId, type Unit } from "@/data/kana";
+import { useAppStore } from "@/lib/app-store";
+import { scriptsForLevel } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_tabs/aprender")({
@@ -38,7 +40,12 @@ function statusOf(script: ScriptId, i: number): Status {
 }
 
 function Learn() {
+  const { state } = useAppStore();
+  const allowed = scriptsForLevel(state.profileLevel);
   const [script, setScript] = useState<ScriptId>("hiragana");
+  useEffect(() => {
+    if (!allowed.includes(script)) setScript("hiragana");
+  }, [allowed, script]);
   const [open, setOpen] = useState<{ unit: Unit; index: number; status: Status } | null>(null);
   const data = scripts[script];
   const total = data.units.reduce((n, u) => n + u.items.length, 0);
@@ -51,8 +58,13 @@ function Learn() {
         Escolha um sistema de escrita
       </p>
 
-      <div className="mt-6 grid grid-cols-3 gap-1 rounded-2xl bg-muted p-1">
-        {(Object.keys(scripts) as ScriptId[]).map((id) => (
+      <div
+        className={cn(
+          "mt-6 grid gap-1 rounded-2xl bg-muted p-1",
+          allowed.length === 3 ? "grid-cols-3" : "grid-cols-2",
+        )}
+      >
+        {allowed.map((id) => (
           <button
             key={id}
             onClick={() => setScript(id)}
@@ -65,6 +77,17 @@ function Learn() {
           </button>
         ))}
       </div>
+
+      {allowed.length === 2 ? (
+        <Link
+          to="/perfil"
+          className="mt-3 flex items-center gap-3 rounded-xl border border-dashed border-border px-3 py-2 text-xs text-muted-foreground"
+        >
+          <span className="font-display text-lg text-lavender-foreground">字</span>
+          <span className="flex-1">Kanji fica disponível no perfil intermediário/avançado.</span>
+          <span className="text-primary">Mudar nível</span>
+        </Link>
+      ) : null}
 
       <div className="mt-5 flex items-center gap-4 rounded-2xl bg-primary p-4 text-primary-foreground shadow-button">
         <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-primary-foreground/15 font-display text-4xl">

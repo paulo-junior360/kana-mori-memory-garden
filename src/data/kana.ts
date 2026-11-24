@@ -290,12 +290,33 @@ export function isScriptId(v: string): v is ScriptId {
   return v === "hiragana" || v === "katakana" || v === "kanji";
 }
 
-/** Kanji chosen automatically for today's review (the user's hardest from last week). */
-export const todaysKanjiReview: { id: string; difficulty: "Difícil" | "Médio" | "Fácil" }[] = [
-  { id: "j-議", difficulty: "Difícil" },
-  { id: "j-難", difficulty: "Difícil" },
-  { id: "j-識", difficulty: "Médio" },
-  { id: "j-際", difficulty: "Médio" },
-  { id: "j-憲", difficulty: "Médio" },
-  { id: "j-歴", difficulty: "Fácil" },
-];
+export type Difficulty = "Difícil" | "Médio" | "Fácil";
+export type ReviewEntry = { id: string; difficulty: Difficulty };
+
+/** Items chosen automatically for today's review (the user's hardest from last week), per script. */
+const REVIEW_POOL: Record<ScriptId, ReviewEntry[]> = {
+  hiragana: [
+    { id: "h-nu", difficulty: "Difícil" },
+    { id: "h-me", difficulty: "Difícil" },
+    { id: "h-ne", difficulty: "Médio" },
+    { id: "h-re", difficulty: "Fácil" },
+  ],
+  katakana: [
+    { id: "k-shi", difficulty: "Difícil" },
+    { id: "k-tsu", difficulty: "Difícil" },
+    { id: "k-so", difficulty: "Médio" },
+    { id: "k-n", difficulty: "Médio" },
+  ],
+  kanji: [
+    { id: "j-議", difficulty: "Difícil" },
+    { id: "j-難", difficulty: "Difícil" },
+    { id: "j-識", difficulty: "Médio" },
+    { id: "j-際", difficulty: "Médio" },
+  ],
+};
+
+/** Today's review queue limited to the scripts the profile studies. Advanced profiles get fewer kana. */
+export function reviewQueue(allowed: ScriptId[]): ReviewEntry[] {
+  const hasKanji = allowed.includes("kanji");
+  return allowed.flatMap((id) => (hasKanji && id !== "kanji" ? REVIEW_POOL[id].slice(0, 2) : REVIEW_POOL[id]));
+}
