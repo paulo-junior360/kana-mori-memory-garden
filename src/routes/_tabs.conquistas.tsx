@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Lock } from "lucide-react";
+import { Check, Lock, TrendingDown, TrendingUp } from "lucide-react";
 
 import { ProgressBar } from "@/components/kana/brand";
 import { useAppStore } from "@/lib/app-store";
-import { levelFromXp, XP_PER_LEVEL } from "@/lib/progress";
+import { DAILY_GOAL_XP, levelFromXp, scriptsForLevel, todayTotal, XP_PER_LEVEL, type TodayXp } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_tabs/conquistas")({
@@ -21,13 +21,31 @@ export const Route = createFileRoute("/_tabs/conquistas")({
   component: Achievements,
 });
 
-const WEEK = ["S", "T", "Q", "Q", "S", "S", "D"];
-const WEEK_XP = [60, 120, 40, 90, 0, 0, 0];
+const WEEK = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+const WEEK_FULL = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+/** Demo history for the days before today (lessons / reviews / combo bonus). */
+const PAST: TodayXp[] = [
+  { lessons: 50, review: 0, combo: 10 },
+  { lessons: 100, review: 30, combo: 10 },
+  { lessons: 0, review: 30, combo: 0 },
+  { lessons: 50, review: 30, combo: 0 },
+  { lessons: 100, review: 0, combo: 20 },
+  { lessons: 50, review: 30, combo: 10 },
+  { lessons: 50, review: 0, combo: 0 },
+];
+const LAST_WEEK_TOTAL = 320;
+
+function useTodayIndex() {
+  const [idx, setIdx] = useState(4);
+  useEffect(() => setIdx((new Date().getDay() + 6) % 7), []);
+  return idx;
+}
 
 function Achievements() {
   const { state } = useAppStore();
   const [tab, setTab] = useState<"medals" | "stats">("medals");
   const level = levelFromXp(state.xp);
+  const advanced = state.profileLevel === "avancado";
 
   const medals = [
     { title: "Primeiro passo", desc: "Conclua sua primeira lição", progress: 1, goal: 1, medal: "bg-medal-bronze", icon: "🌱" },
@@ -36,11 +54,16 @@ function Achievements() {
     { title: "Ofensiva de fogo", desc: "Mantenha 30 dias seguidos", progress: Math.min(30, state.streak), goal: 30, medal: "bg-medal-gold", icon: "🔥" },
     { title: "Mestre do Hiragana", desc: "Complete todos os módulos de Hiragana", progress: 2, goal: 10, medal: "bg-medal-gold", icon: "あ" },
     { title: "Explorador do Katakana", desc: "Complete o primeiro módulo de Katakana", progress: 0, goal: 1, medal: "bg-medal-silver", icon: "ア" },
-    { title: "Caçador de Kanji", desc: "Revise 50 kanjis", progress: state.kanjiReviewDone ? 18 : 12, goal: 50, medal: "bg-medal-gold", icon: "字" },
+    ...(advanced
+      ? [{ title: "Caçador de Kanji", desc: "Revise 50 kanjis", progress: state.reviewDone ? 16 : 12, goal: 50, medal: "bg-medal-gold", icon: "字" }]
+      : []),
   ];
 
-  const weekXp = WEEK_XP.map((v, i) => (i === 4 && state.savedToday ? (state.lastLesson?.xpEarned ?? 50) : v));
-  const maxXp = Math.max(...weekXp, 1);
+  const learned = [
+    { id: "hiragana", name: "Hiragana", n: 10, total: 46 },
+    { id: "katakana", name: "Katakana", n: 0, total: 46 },
+    { id: "kanji", name: "Kanji", n: 12, total: 24 },
+  ].filter((s) => scriptsForLevel(state.profileLevel).includes(s.id as "hiragana"));
 
   return (
     <div className="px-5 pt-8 pb-8">
@@ -131,28 +154,11 @@ function Achievements() {
             <p className="mt-2 text-xs text-muted-foreground">{state.xp} XP no total</p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <p className="font-display text-sm tracking-wide">XP da semana</p>
-            <div className="mt-4 flex h-32 items-end justify-between gap-2">
-              {weekXp.map((v, i) => (
-                <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
-                  <div
-                    className={cn("w-full rounded-t-lg transition-all", v ? "bg-primary" : "bg-option")}
-                    style={{ height: `${Math.max(6, (v / maxXp) * 100)}%` }}
-                  />
-                  <span className="font-display text-[11px] text-muted-foreground">{WEEK[i]}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <WeeklyXp today={state.today} />
 
           <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
             <p className="font-display text-sm tracking-wide">Caracteres aprendidos</p>
-            {[
-              { name: "Hiragana", n: 10, total: 46 },
-              { name: "Katakana", n: 0, total: 46 },
-              { name: "Kanji", n: 12, total: 24 },
-            ].map((s) => (
+            {learned.map((s) => (
               <div key={s.name} className="mt-3">
                 <div className="flex justify-between text-xs">
                   <span>{s.name}</span>
@@ -177,6 +183,172 @@ function Achievements() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+const SOURCES = [
+  { key: "lessons", label: "Lições", bar: "bg-primary", dot: "bg-primary" },
+  { key: "review", label: "Revisões", bar: "bg-link", dot: "bg-link" },
+  { key: "combo", label: "Bônus de combo", bar: "bg-star", dot: "bg-star" },
+] as const;
+
+function WeeklyXp({ today }: { today: TodayXp }) {
+  const todayIdx = useTodayIndex();
+  const [selected, setSelected] = useState<number | null>(null);
+  const sel = selected ?? todayIdx;
+
+  const days = WEEK.map((_, i) => (i < todayIdx ? PAST[i]! : i === todayIdx ? today : null));
+  const totals = days.map((d) => (d ? todayTotal(d) : 0));
+  const elapsed = todayIdx + 1;
+  const weekTotal = totals.reduce((a, b) => a + b, 0);
+  const avg = Math.round(weekTotal / elapsed);
+  const best = totals.reduce((bi, v, i) => (v > totals[bi]! ? i : bi), 0);
+  const goalDays = totals.filter((v, i) => i <= todayIdx && v >= DAILY_GOAL_XP).length;
+  const diff = Math.round(((weekTotal - LAST_WEEK_TOTAL) / LAST_WEEK_TOTAL) * 100);
+  const scaleMax = Math.max(DAILY_GOAL_XP * 2, ...totals);
+  const goalPct = (DAILY_GOAL_XP / scaleMax) * 100;
+  const selDay = days[sel];
+  const selTotal = totals[sel] ?? 0;
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-display text-sm tracking-wide">XP da semana</p>
+          <p className="mt-0.5 font-display text-3xl">
+            {weekTotal} <span className="text-sm text-muted-foreground">XP</span>
+          </p>
+        </div>
+        <span
+          className={cn(
+            "flex items-center gap-1 rounded-full px-2.5 py-1 font-display text-xs",
+            diff >= 0 ? "bg-primary-soft text-accent-foreground" : "bg-destructive-soft text-destructive",
+          )}
+        >
+          {diff >= 0 ? <TrendingUp className="size-3.5" /> : <TrendingDown className="size-3.5" />}
+          {diff >= 0 ? "+" : ""}
+          {diff}% vs semana passada
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-xl bg-muted px-2 py-2">
+          <p className="font-display text-lg">{avg}</p>
+          <p className="text-[10px] leading-tight text-muted-foreground">Média por dia</p>
+        </div>
+        <div className="rounded-xl bg-muted px-2 py-2">
+          <p className="font-display text-lg">{WEEK[best]}</p>
+          <p className="text-[10px] leading-tight text-muted-foreground">Melhor dia ({totals[best]} XP)</p>
+        </div>
+        <div className="rounded-xl bg-muted px-2 py-2">
+          <p className="font-display text-lg">
+            {goalDays}/{elapsed}
+          </p>
+          <p className="text-[10px] leading-tight text-muted-foreground">Dias com meta batida</p>
+        </div>
+      </div>
+
+      <div className="relative mt-6 h-40">
+        <div
+          aria-hidden
+          className="absolute inset-x-0 border-t-2 border-dashed border-flame/60"
+          style={{ bottom: `calc(${goalPct}% * 0.82 + 1.25rem)` }}
+        >
+          <span className="absolute -top-4 right-0 bg-card pl-1 font-display text-[10px] text-flame">
+            meta {DAILY_GOAL_XP} XP
+          </span>
+        </div>
+        <div className="flex h-full items-end justify-between gap-2">
+          {days.map((d, i) => {
+            const total = totals[i]!;
+            const future = d === null;
+            const isSel = i === sel;
+            return (
+              <button
+                key={WEEK[i]}
+                onClick={() => setSelected(i)}
+                disabled={future}
+                aria-label={`${WEEK_FULL[i]}: ${total} XP`}
+                aria-pressed={isSel}
+                className="flex h-full flex-1 flex-col items-center justify-end gap-1"
+              >
+                <span className={cn("font-display text-[10px]", isSel ? "text-foreground" : "text-muted-foreground")}>
+                  {future ? "" : total}
+                </span>
+                <div className="flex h-[82%] w-full flex-col justify-end">
+                  {future ? (
+                    <div className="h-2 w-full rounded-md border border-dashed border-border" />
+                  ) : total === 0 ? (
+                    <div className="h-1.5 w-full rounded-md bg-option" />
+                  ) : (
+                    <div
+                      className={cn(
+                        "flex w-full flex-col-reverse overflow-hidden rounded-t-lg transition-all",
+                        isSel ? "ring-2 ring-foreground/70 ring-offset-2 ring-offset-card" : "opacity-85",
+                      )}
+                      style={{ height: `${(total / scaleMax) * 100}%` }}
+                    >
+                      {SOURCES.map((s) =>
+                        d[s.key] ? (
+                          <div key={s.key} className={s.bar} style={{ height: `${(d[s.key] / total) * 100}%` }} />
+                        ) : null,
+                      )}
+                    </div>
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "font-display text-[11px]",
+                    i === todayIdx ? "font-semibold text-primary" : "text-muted-foreground",
+                  )}
+                >
+                  {i === todayIdx ? "Hoje" : WEEK[i]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
+        {SOURCES.map((s) => (
+          <span key={s.key} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className={cn("size-2.5 rounded-sm", s.dot)} /> {s.label}
+          </span>
+        ))}
+      </div>
+
+      <div key={sel} className="mt-4 animate-rise rounded-xl bg-muted p-3">
+        <div className="flex items-center justify-between">
+          <p className="font-display text-sm tracking-wide">
+            {sel === todayIdx ? "Hoje" : WEEK_FULL[sel]}
+          </p>
+          {selTotal >= DAILY_GOAL_XP ? (
+            <span className="flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-[11px] text-accent-foreground">
+              <Check className="size-3" strokeWidth={3} /> Meta batida
+            </span>
+          ) : (
+            <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[11px] text-warning">
+              Faltam {DAILY_GOAL_XP - selTotal} XP para a meta
+            </span>
+          )}
+        </div>
+        <ul className="mt-2 space-y-1.5">
+          {SOURCES.map((s) => (
+            <li key={s.key} className="flex items-center gap-2 text-sm">
+              <span className={cn("size-2.5 rounded-sm", s.dot)} />
+              <span className="flex-1 text-muted-foreground">{s.label}</span>
+              <span className="font-display tabular-nums">+{selDay?.[s.key] ?? 0} XP</span>
+            </li>
+          ))}
+          <li className="flex items-center justify-between border-t border-border pt-1.5 text-sm">
+            <span className="font-display">Total do dia</span>
+            <span className="font-display font-semibold tabular-nums">{selTotal} XP</span>
+          </li>
+        </ul>
+        <p className="mt-2 text-[11px] text-muted-foreground">Toque em uma barra para ver o detalhe do dia.</p>
+      </div>
     </div>
   );
 }

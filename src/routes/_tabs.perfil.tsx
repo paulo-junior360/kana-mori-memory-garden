@@ -4,11 +4,13 @@ import { Bell, Check, ChevronRight, Globe, LogOut, Palette, RotateCcw } from "lu
 import { toast } from "sonner";
 
 import { Field } from "@/components/kana/auth-bits";
+import { LevelPicker } from "@/components/kana/level-picker";
 import { Sheet } from "@/components/kana/sheet";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAppStore } from "@/lib/app-store";
-import { levelFromXp } from "@/lib/progress";
+import { levelFromXp, PROFILE_LABEL, scriptsForLevel, type ProfileLevel } from "@/lib/progress";
+import { scripts } from "@/data/kana";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_tabs/perfil")({
@@ -46,6 +48,7 @@ function Profile() {
   const navigate = useNavigate();
   const [sheet, setSheet] = useState<Picker>(null);
   const [name, setName] = useState(state.userName);
+  const [level, setLevel] = useState<ProfileLevel>(state.profileLevel);
 
   const progress = [
     { icon: "🎓", label: "Nível atual", value: levelFromXp(state.xp), cls: "text-warning" },
@@ -60,12 +63,23 @@ function Profile() {
         <Avatar />
         <h1 className="mt-4 font-display text-3xl tracking-display">{state.userName}</h1>
         <p className="font-display text-sm tracking-wide text-muted-foreground">Estudante de japonês</p>
+        <span
+          className={cn(
+            "mt-2 rounded-full px-3 py-1 font-display text-xs tracking-wide",
+            state.profileLevel === "avancado"
+              ? "bg-lavender-soft text-lavender-foreground"
+              : "bg-primary-soft text-accent-foreground",
+          )}
+        >
+          {PROFILE_LABEL[state.profileLevel]}
+        </span>
         <Button
           variant="soft"
           size="pill"
           className="mt-4 font-display font-normal tracking-wide text-foreground"
           onClick={() => {
             setName(state.userName);
+            setLevel(state.profileLevel);
             setSheet("edit");
           }}
         >
@@ -134,15 +148,31 @@ function Profile() {
 
       <Sheet open={sheet === "edit"} onClose={() => setSheet(null)} title="Editar perfil">
         <Field label="Nome" value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" />
+        <div className="mt-4">
+          <LevelPicker value={level} onChange={setLevel} />
+        </div>
+        <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
+          Você vai estudar e revisar: {scriptsForLevel(level).map((s) => scripts[s].name).join(", ")}.
+        </p>
         <Button
           variant="hero"
           size="xl"
           className="mt-6"
           disabled={name.trim().length < 2}
           onClick={() => {
-            actions.setName(name.trim());
+            const changed = level !== state.profileLevel;
+            actions.updateProfile(name.trim(), level);
             setSheet(null);
-            toast.success("Perfil atualizado");
+            toast.success("Perfil atualizado", {
+              ...(changed
+                ? {
+                    description:
+                      level === "avancado"
+                        ? "Kanji liberado em Aprender e na Revisão."
+                        : "Aprender e Revisão agora mostram só hiragana e katakana.",
+                  }
+                : {}),
+            });
           }}
         >
           Salvar
