@@ -121,13 +121,14 @@ function ReviewSession() {
         key={entry.id}
         className="mt-8 flex flex-1 animate-rise flex-col items-center rounded-3xl border border-border bg-card p-6 text-center shadow-card"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center justify-between gap-2">
           <ScriptTag script={k.script} />
           <span className="font-display text-xs tracking-display text-muted-foreground">
             {shown ? "RESPOSTA" : "VOCÊ LEMBRA?"}
           </span>
         </div>
-        <div className="mt-6 font-display text-[120px] leading-none">{k.char}</div>
+        <div className="flex w-full flex-1 flex-col items-center justify-center py-4">
+        <div className={cn("font-display leading-none transition-all", shown ? "text-[96px]" : "text-[160px]")}>{k.char}</div>
         {shown ? (
           <div className="mt-6 w-full animate-rise space-y-3">
             <p className="font-display text-2xl tracking-display">{isKanji ? k.meaning : k.romaji}</p>
@@ -137,9 +138,9 @@ function ReviewSession() {
             >
               <Volume2 className="size-4" /> {isKanji ? `${k.reading} · ${k.romaji}` : "Ouvir"}
             </button>
-            <div className="flex items-center gap-3 rounded-2xl bg-muted p-3 text-left text-sm text-muted-foreground">
-              <MnemonicArt item={k} className="size-10 shrink-0 text-sm" />
-              <span>{k.mnemonic}</span>
+            <div className="flex flex-col items-center gap-3 rounded-2xl bg-muted p-4 text-sm text-muted-foreground">
+              <MnemonicArt item={k} className="size-24 shrink-0 text-3xl" />
+              <span className="text-base text-foreground">{k.mnemonic}</span>
             </div>
           </div>
         ) : (
@@ -147,6 +148,16 @@ function ReviewSession() {
             {isKanji ? "Pense no significado e na leitura antes de virar." : "Pense em como se lê antes de virar."}
           </p>
         )}
+        </div>
+        <div className="flex w-full items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
+          <span>Memória</span>
+          <span className="flex gap-1">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <span key={i} className={cn("h-1.5 w-5 rounded-full", i < box ? "bg-primary" : "bg-muted")} />
+            ))}
+          </span>
+          <span>{box === 0 ? "Novo" : `Revisado ${box}x`}</span>
+        </div>
       </div>
 
       {shown ? (
