@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import hero from "@/assets/hero-cat-sign.jpg";
+import heroAsset from "@/assets/gato.png.asset.json";
+const hero = heroAsset.url;
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({

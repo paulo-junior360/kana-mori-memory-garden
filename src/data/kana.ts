@@ -1,9 +1,15 @@
-import imgA from "@/assets/mnemonic-a.webp";
-import imgI from "@/assets/mnemonic-i.webp";
-import imgU from "@/assets/mnemonic-u.webp";
-import imgE from "@/assets/mnemonic-e.webp";
-import imgO from "@/assets/mnemonic-o.webp";
-import imgKu from "@/assets/mnemonic-ku.webp";
+import imgAAsset from "@/assets/mnemonic-a.png.asset.json";
+const imgA = imgAAsset.url;
+import imgIAsset from "@/assets/mnemonic-i.png.asset.json";
+const imgI = imgIAsset.url;
+import imgUAsset from "@/assets/mnemonic-u.png.asset.json";
+const imgU = imgUAsset.url;
+import imgEAsset from "@/assets/mnemonic-e.png.asset.json";
+const imgE = imgEAsset.url;
+import imgOAsset from "@/assets/mnemonic-o.png.asset.json";
+const imgO = imgOAsset.url;
+import imgKuAsset from "@/assets/mnemonic-ku.png.asset.json";
+const imgKu = imgKuAsset.url;
 
 export type Tone =
   | "green"
