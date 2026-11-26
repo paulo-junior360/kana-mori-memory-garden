@@ -33,7 +33,8 @@ const PAST: TodayXp[] = [
   { lessons: 50, review: 30, combo: 10 },
   { lessons: 50, review: 0, combo: 0 },
 ];
-const LAST_WEEK_TOTAL = 320;
+/** Demo XP per day last week, compared over the same days elapsed this week. */
+const LAST_WEEK = [40, 90, 60, 50, 70, 40, 30];
 
 function useTodayIndex() {
   const [idx, setIdx] = useState(4);
@@ -205,7 +206,8 @@ function WeeklyXp({ today }: { today: TodayXp }) {
   const avg = Math.round(weekTotal / elapsed);
   const best = totals.reduce((bi, v, i) => (v > totals[bi]! ? i : bi), 0);
   const goalDays = totals.filter((v, i) => i <= todayIdx && v >= DAILY_GOAL_XP).length;
-  const diff = Math.round(((weekTotal - LAST_WEEK_TOTAL) / LAST_WEEK_TOTAL) * 100);
+  const lastWeekSoFar = LAST_WEEK.slice(0, elapsed).reduce((a, b) => a + b, 0);
+  const diff = Math.round(((weekTotal - lastWeekSoFar) / lastWeekSoFar) * 100);
   const scaleMax = Math.max(DAILY_GOAL_XP * 2, ...totals);
   const goalPct = (DAILY_GOAL_XP / scaleMax) * 100;
   const selDay = days[sel];
@@ -228,7 +230,7 @@ function WeeklyXp({ today }: { today: TodayXp }) {
         >
           {diff >= 0 ? <TrendingUp className="size-3.5" /> : <TrendingDown className="size-3.5" />}
           {diff >= 0 ? "+" : ""}
-          {diff}% vs semana passada
+          {diff}% vs mesmo período da semana passada
         </span>
       </div>
 
