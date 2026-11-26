@@ -55,8 +55,20 @@ function Achievements() {
     { title: "Ofensiva de fogo", desc: "Mantenha 30 dias seguidos", progress: Math.min(30, state.streak), goal: 30, medal: "bg-medal-gold", icon: "🔥" },
     { title: "Mestre do Hiragana", desc: "Complete todos os módulos de Hiragana", progress: 2, goal: 10, medal: "bg-medal-gold", icon: "あ" },
     { title: "Explorador do Katakana", desc: "Complete o primeiro módulo de Katakana", progress: 0, goal: 1, medal: "bg-medal-silver", icon: "ア" },
+    { title: "Maratonista", desc: "Conclua 25 lições", progress: Math.min(25, state.lessonsCompleted), goal: 25, medal: "bg-medal-silver", icon: "🏃" },
+    { title: "Centena de lições", desc: "Conclua 100 lições", progress: Math.min(100, state.lessonsCompleted), goal: 100, medal: "bg-medal-gold", icon: "💯" },
+    { title: "Mil pontos", desc: "Acumule 1.000 XP", progress: Math.min(1000, state.xp), goal: 1000, medal: "bg-medal-bronze", icon: "⭐" },
+    { title: "Lenda do XP", desc: "Acumule 5.000 XP", progress: Math.min(5000, state.xp), goal: 5000, medal: "bg-medal-gold", icon: "🌟" },
+    { title: "Nota máxima", desc: "Termine uma lição sem errar nenhuma", progress: state.lastLesson && state.lastLesson.correct === state.lastLesson.total ? 1 : 0, goal: 1, medal: "bg-medal-gold", icon: "🎯" },
+    { title: "Relâmpago", desc: "Termine uma lição em menos de 1 minuto", progress: state.lastLesson && state.lastLesson.seconds < 60 ? 1 : 0, goal: 1, medal: "bg-medal-silver", icon: "⚡" },
+    { title: "Memória de elefante", desc: "Conclua a revisão do dia", progress: state.reviewDone ? 1 : 0, goal: 1, medal: "bg-medal-bronze", icon: "🐘" },
+    { title: "Colecionador", desc: "Guarde 10 caracteres na sua lista de estudo", progress: Math.min(10, state.myReview.length), goal: 10, medal: "bg-medal-bronze", icon: "📌" },
+    { title: "Raízes firmes", desc: "Fixe 20 caracteres na memória de longo prazo", progress: Math.min(20, Object.values(state.srs).filter((b) => b >= 3).length), goal: 20, medal: "bg-medal-silver", icon: "🌳" },
+    { title: "Semana perfeita", desc: "Estude todos os 7 dias da semana", progress: state.weekDone, goal: 7, medal: "bg-medal-silver", icon: "🗓️" },
+    { title: "Cem dias de sakura", desc: "Mantenha 100 dias seguidos", progress: Math.min(100, state.streak), goal: 100, medal: "bg-medal-gold", icon: "🌸" },
     ...(advanced
-      ? [{ title: "Caçador de Kanji", desc: "Revise 50 kanjis", progress: state.reviewDone ? 16 : 12, goal: 50, medal: "bg-medal-gold", icon: "字" }]
+      ? [{ title: "Caçador de Kanji", desc: "Revise 50 kanjis", progress: state.reviewDone ? 16 : 12, goal: 50, medal: "bg-medal-gold", icon: "字" },
+          { title: "Sábio do Kanji", desc: "Fixe 10 kanjis na memória de longo prazo", progress: Math.min(10, Object.entries(state.srs).filter(([id, b]) => id.startsWith("kanji") && b >= 3).length), goal: 10, medal: "bg-medal-gold", icon: "🏯" }]
       : []),
   ];
 
