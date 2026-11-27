@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { applyLessonComplete, initialState, levelFromXp } from "@/lib/progress";
+import {
+  applyEquip,
+  applyLessonComplete,
+  applyPurchase,
+  canBuy,
+  initialState,
+  levelFromXp,
+  MAX_STREAK_FREEZES,
+  xpBalance,
+} from "@/lib/progress";
 import { intervalLabel, nextBox } from "@/lib/srs";
 
 const result = { correct: 6, total: 6, maxCombo: 6, seconds: 70 };
@@ -41,5 +50,43 @@ describe("repetição espaçada", () => {
   });
   it("hard keeps the card in place", () => {
     expect(nextBox(2, "dificil")).toBe(2);
+  });
+});
+
+describe("loja", () => {
+  const rich = { ...initialState, xp: 1000, xpSpent: 0 };
+
+  it("buying spends XP from the balance but never lowers the level", () => {
+    const s = applyPurchase(rich, "tema-sakura");
+    expect(xpBalance(s)).toBe(700);
+    expect(levelFromXp(s.xp)).toBe(levelFromXp(1000));
+  });
+
+  it("a purchased cosmetic is owned and equipped right away", () => {
+    const s = applyPurchase(rich, "avatar-neko");
+    expect(s.owned).toContain("avatar-neko");
+    expect(s.equipped.avatar).toBe("avatar-neko");
+  });
+
+  it("cannot buy without enough XP", () => {
+    const poor = { ...initialState, xp: 100, xpSpent: 0 };
+    expect(canBuy(poor, "bloqueio")).toBe("sem-xp");
+    expect(applyPurchase(poor, "bloqueio")).toBe(poor);
+  });
+
+  it("streak freezes stack up to 3", () => {
+    let s = { ...initialState, xp: 5000, xpSpent: 0 };
+    for (let i = 0; i < 4; i++) s = applyPurchase(s, "bloqueio");
+    expect(s.streakFreezes).toBe(MAX_STREAK_FREEZES);
+    expect(canBuy(s, "bloqueio")).toBe("limite");
+  });
+
+  it("an owned cosmetic cannot be bought twice", () => {
+    const s = applyPurchase(rich, "moldura-ouro");
+    expect(canBuy(s, "moldura-ouro")).toBe("ja-tem");
+  });
+
+  it("cannot equip an item not owned", () => {
+    expect(applyEquip(rich, "tema-yoru").equipped.tema).toBe("tema-mori");
   });
 });

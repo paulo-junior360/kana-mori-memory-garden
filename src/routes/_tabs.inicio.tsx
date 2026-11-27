@@ -6,7 +6,7 @@ import { Wordmark } from "@/components/kana/brand";
 import { RewardsRow, StreakCard } from "@/components/kana/streak";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/app-store";
-import { LESSON_XP } from "@/lib/progress";
+import { LESSON_XP, xpBalance } from "@/lib/progress";
 
 export const Route = createFileRoute("/_tabs/inicio")({
   head: () => ({
@@ -51,7 +51,15 @@ function Home() {
 
   return (
     <div className="px-5 pt-8 pb-6">
-      <Wordmark className="text-center" />
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+        <Link to="/loja" search={{ aba: "bloqueio" }} className="justify-self-start rounded-full bg-sky-50 px-2.5 py-1 font-display text-xs tabular-nums" aria-label="Bloqueios de ofensiva">
+          🧊 {state.streakFreezes}
+        </Link>
+        <Wordmark className="text-center" />
+        <Link to="/loja" className="justify-self-end rounded-full bg-flame-soft px-2.5 py-1 font-display text-xs tabular-nums" aria-label="Loja">
+          ⭐ {xpBalance(state)}
+        </Link>
+      </div>
 
       {state.savedToday ? (
         <div className="mt-6 animate-rise space-y-5">

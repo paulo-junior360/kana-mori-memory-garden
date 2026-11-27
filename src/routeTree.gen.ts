@@ -14,6 +14,7 @@ import { Route as TabsRouteImport } from './routes/_tabs'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as LicaoRouteImport } from './routes/licao'
+import { Route as LojaRouteImport } from './routes/loja'
 import { Route as RevisarRouteImport } from './routes/revisar'
 import { Route as TabsAprenderRouteImport } from './routes/_tabs.aprender'
 import { Route as TabsConquistasRouteImport } from './routes/_tabs.conquistas'
@@ -44,6 +45,11 @@ const EntrarRoute = EntrarRouteImport.update({
 const LicaoRoute = LicaoRouteImport.update({
   id: '/licao',
   path: '/licao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LojaRoute = LojaRouteImport.update({
+  id: '/loja',
+  path: '/loja',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RevisarRoute = RevisarRouteImport.update({
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRoute
   '/entrar': typeof EntrarRoute
   '/licao': typeof LicaoRoute
+  '/loja': typeof LojaRoute
   '/revisar': typeof RevisarRoute
   '/aprender': typeof TabsAprenderRoute
   '/conquistas': typeof TabsConquistasRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/entrar': typeof EntrarRoute
   '/licao': typeof LicaoRoute
+  '/loja': typeof LojaRoute
   '/revisar': typeof RevisarRoute
   '/aprender': typeof TabsAprenderRoute
   '/conquistas': typeof TabsConquistasRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRoute
   '/entrar': typeof EntrarRoute
   '/licao': typeof LicaoRoute
+  '/loja': typeof LojaRoute
   '/revisar': typeof RevisarRoute
   '/_tabs/aprender': typeof TabsAprenderRoute
   '/_tabs/conquistas': typeof TabsConquistasRoute
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/entrar'
     | '/licao'
+    | '/loja'
     | '/revisar'
     | '/aprender'
     | '/conquistas'
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/entrar'
     | '/licao'
+    | '/loja'
     | '/revisar'
     | '/aprender'
     | '/conquistas'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/entrar'
     | '/licao'
+    | '/loja'
     | '/revisar'
     | '/_tabs/aprender'
     | '/_tabs/conquistas'
@@ -172,6 +184,7 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRoute
   EntrarRoute: typeof EntrarRoute
   LicaoRoute: typeof LicaoRoute
+  LojaRoute: typeof LojaRoute
   RevisarRoute: typeof RevisarRoute
   EstudarSistemaRoute: typeof EstudarSistemaRoute
 }
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       path: '/licao'
       fullPath: '/licao'
       preLoaderRoute: typeof LicaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loja': {
+      id: '/loja'
+      path: '/loja'
+      fullPath: '/loja'
+      preLoaderRoute: typeof LojaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/revisar': {
@@ -289,6 +309,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRoute,
   EntrarRoute: EntrarRoute,
   LicaoRoute: LicaoRoute,
+  LojaRoute: LojaRoute,
   RevisarRoute: RevisarRoute,
   EstudarSistemaRoute: EstudarSistemaRoute,
 }

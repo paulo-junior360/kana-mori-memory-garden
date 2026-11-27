@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Bell, Check, ChevronRight, Globe, LogOut, Palette, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 import { Field } from "@/components/kana/auth-bits";
+import { UserAvatar } from "@/components/kana/avatar";
 import { LevelPicker } from "@/components/kana/level-picker";
 import { Sheet } from "@/components/kana/sheet";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAppStore } from "@/lib/app-store";
-import { levelFromXp, PROFILE_LABEL, scriptsForLevel, type ProfileLevel } from "@/lib/progress";
+import { levelFromXp, PROFILE_LABEL, xpBalance, scriptsForLevel, type ProfileLevel } from "@/lib/progress";
 import { scripts } from "@/data/kana";
 import { cn } from "@/lib/utils";
 
@@ -26,20 +27,6 @@ export const Route = createFileRoute("/_tabs/perfil")({
   }),
   component: Profile,
 });
-
-function Avatar() {
-  return (
-    <div className="grid size-28 place-items-center rounded-full bg-lavender p-3">
-      <div className="grid size-full place-items-center rounded-full bg-card">
-        <svg viewBox="0 0 40 40" className="size-12 text-foreground" aria-hidden>
-          <circle cx="14" cy="16" r="2.4" fill="currentColor" />
-          <circle cx="26" cy="16" r="2.4" fill="currentColor" />
-          <path d="M13 24c3.5 4 10.5 4 14 0" stroke="currentColor" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-        </svg>
-      </div>
-    </div>
-  );
-}
 
 type Picker = null | "edit" | "theme" | "lang";
 
@@ -60,7 +47,7 @@ function Profile() {
   return (
     <div className="px-5 pt-8 pb-8">
       <div className="flex flex-col items-center text-center">
-        <Avatar />
+        <UserAvatar />
         <h1 className="mt-4 font-display text-3xl tracking-display">{state.userName}</h1>
         <p className="font-display text-sm tracking-wide text-muted-foreground">Estudante de japonês</p>
         <span
@@ -85,6 +72,22 @@ function Profile() {
         >
           Editar perfil
         </Button>
+      </div>
+
+      <Link
+        to="/loja"
+        className="mt-6 flex items-center gap-3 rounded-2xl border border-border bg-[linear-gradient(120deg,var(--primary-soft),var(--card))] p-4 shadow-card active:scale-[0.99]"
+      >
+        <span className="text-3xl">🛍️</span>
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-base tracking-wide">Loja KanaMori</p>
+          <p className="text-xs text-muted-foreground">
+            ⭐ {xpBalance(state)} XP para gastar · 🧊 {state.streakFreezes} bloqueio{state.streakFreezes === 1 ? "" : "s"}
+          </p>
+        </div>
+        <ChevronRight className="size-4 text-muted-foreground" />
+      </Link>
+      <div>
       </div>
 
       <p className="mt-8 mb-3 font-display text-base tracking-wide">Meu progresso:</p>

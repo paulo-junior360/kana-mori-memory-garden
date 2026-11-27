@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import {
+  applyEquip,
   applyLessonComplete,
+  applyPurchase,
   applyReviewComplete,
   initialState,
   type AppState,
@@ -21,6 +23,8 @@ type Actions = {
   toggleMyReview: (id: string) => void;
   unlockComboMedal: () => void;
   resetDemo: () => void;
+  buyItem: (id: string) => void;
+  equipItem: (id: string) => void;
 };
 
 const Ctx = createContext<{ state: AppState; actions: Actions } | null>(null);
@@ -32,7 +36,10 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setState({ ...initialState, ...(JSON.parse(raw) as Partial<AppState>) });
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<AppState>;
+        setState({ ...initialState, ...saved, equipped: { ...initialState.equipped, ...saved.equipped } });
+      }
     } catch {
       // ignore corrupted storage
     }
@@ -78,6 +85,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   }, []);
   const unlockComboMedal = useCallback(() => setState((s) => ({ ...s, comboMedal: true })), []);
   const resetDemo = useCallback(() => setState(initialState), []);
+  const buyItem = useCallback((id: string) => setState((s) => applyPurchase(s, id)), []);
+  const equipItem = useCallback((id: string) => setState((s) => applyEquip(s, id)), []);
+
+  useEffect(() => {
+    document.documentElement.dataset["theme"] = state.equipped.tema;
+  }, [state.equipped.tema]);
 
   const value = useMemo(
     () => ({
@@ -91,9 +104,11 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         toggleMyReview,
         unlockComboMedal,
         resetDemo,
+        buyItem,
+        equipItem,
       },
     }),
-    [state, signIn, completeLesson, completeReview, updateProfile, setNotifications, toggleMyReview, unlockComboMedal, resetDemo],
+    [state, signIn, completeLesson, completeReview, updateProfile, setNotifications, toggleMyReview, unlockComboMedal, resetDemo, buyItem, equipItem],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

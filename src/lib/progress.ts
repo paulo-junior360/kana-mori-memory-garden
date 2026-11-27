@@ -1,4 +1,5 @@
 import type { ScriptId } from "@/data/kana";
+import { DEFAULT_EQUIPPED, getShopItem, STREAK_FREEZE_ID } from "@/data/shop";
 
 export type LessonResult = {
   correct: number;
@@ -39,6 +40,12 @@ export type AppState = {
   /** Unlocked after 5 correct answers in a row inside a lesson. */
   comboMedal: boolean;
   lastLesson: (LessonResult & { xpEarned: number; savedStreak: boolean }) | null;
+  /** XP spent in the shop. Level always uses total earned `xp`, so spending never lowers it. */
+  xpSpent: number;
+  streakFreezes: number;
+  /** Cosmetic shop items owned (free defaults are implicit). */
+  owned: string[];
+  equipped: { tema: string; moldura: string; avatar: string };
 };
 
 export const LESSON_XP = 50;
@@ -78,6 +85,10 @@ export const initialState: AppState = {
   myReview: [],
   comboMedal: false,
   lastLesson: null,
+  xpSpent: 0,
+  streakFreezes: 0,
+  owned: [],
+  equipped: { ...DEFAULT_EQUIPPED },
 };
 
 export function scriptsForLevel(level: ProfileLevel): ScriptId[] {
@@ -124,4 +135,42 @@ export function applyReviewComplete(state: AppState, srs: Record<string, number>
     xp: state.xp + REVIEW_XP,
     today: { ...state.today, review: state.today.review + REVIEW_XP },
   };
+}
+
+export const MAX_STREAK_FREEZES = 3;
+
+export function xpBalance(state: AppState): number {
+  return Math.max(0, state.xp - state.xpSpent);
+}
+
+export function ownsItem(state: AppState, id: string): boolean {
+  const item = getShopItem(id);
+  return !!item && (item.price === 0 || state.owned.includes(id));
+}
+
+export type BuyCheck = "ok" | "sem-xp" | "ja-tem" | "limite" | "invalido";
+
+export function canBuy(state: AppState, id: string): BuyCheck {
+  const item = getShopItem(id);
+  if (!item) return "invalido";
+  if (id === STREAK_FREEZE_ID) {
+    if (state.streakFreezes >= MAX_STREAK_FREEZES) return "limite";
+  } else if (ownsItem(state, id)) return "ja-tem";
+  if (xpBalance(state) < item.price) return "sem-xp";
+  return "ok";
+}
+
+/** Buying spends XP (never total XP or level); cosmetics are equipped right away. */
+export function applyPurchase(state: AppState, id: string): AppState {
+  if (canBuy(state, id) !== "ok") return state;
+  const item = getShopItem(id)!;
+  const next = { ...state, xpSpent: state.xpSpent + item.price };
+  if (id === STREAK_FREEZE_ID) return { ...next, streakFreezes: next.streakFreezes + 1 };
+  return { ...next, owned: [...next.owned, id], equipped: { ...next.equipped, [item.category]: id } };
+}
+
+export function applyEquip(state: AppState, id: string): AppState {
+  const item = getShopItem(id);
+  if (!item || item.category === "bloqueio" || !ownsItem(state, id)) return state;
+  return { ...state, equipped: { ...state.equipped, [item.category]: id } };
 }
