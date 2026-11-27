@@ -83,10 +83,24 @@ function Login() {
       <div className="mt-6 space-y-4">
         <Divider label="ou entre com" />
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" className="h-12 rounded-xl" onClick={() => navigate({ to: "/inicio" })}>
+          <Button
+            variant="outline"
+            className="h-12 rounded-xl"
+            onClick={() => {
+              toast.success("Conectado com Google");
+              navigate({ to: "/inicio" });
+            }}
+          >
             <GoogleIcon /> Google
           </Button>
-          <Button variant="outline" className="h-12 rounded-xl" onClick={() => navigate({ to: "/inicio" })}>
+          <Button
+            variant="outline"
+            className="h-12 rounded-xl"
+            onClick={() => {
+              toast.success("Conectado com Apple");
+              navigate({ to: "/inicio" });
+            }}
+          >
             <AppleIcon /> Apple
           </Button>
         </div>

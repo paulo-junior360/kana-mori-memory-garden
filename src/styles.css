@@ -290,3 +290,33 @@
   --ring: oklch(0.53 0.16 290);
   --background: oklch(0.99 0.006 290);
 }
+
+/* Keep toast notifications anchored inside the phone display frame */
+#app-frame [data-sonner-toaster] {
+  position: absolute !important;
+  top: 12px !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  width: calc(100% - 24px) !important;
+  max-width: 390px !important;
+  --width: 100% !important;
+  z-index: 60 !important;
+}
+
+#app-frame [data-sonner-toast] {
+  width: 100% !important;
+  border-radius: 1rem !important;
+}
+
+/* Hide scrollbars inside the mobile frame while keeping scrolling fully functional */
+#app-frame,
+#app-frame * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#app-frame::-webkit-scrollbar,
+#app-frame *::-webkit-scrollbar {
+  display: none;
+}

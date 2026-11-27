@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarCheck, ChevronRight, Clock, Info } from "lucide-react";
+import { CalendarCheck, Check, ChevronRight, Clock, Info, Plus } from "lucide-react";
 
 import { CharDetailSheet } from "@/components/kana/char-detail";
 import { DifficultyTag } from "@/components/kana/difficulty";
@@ -37,7 +37,7 @@ function Review() {
   const [open, setOpen] = useState<CharItem | null>(null);
   const done = state.reviewDone;
   const allowed = scriptsForLevel(state.profileLevel);
-  const queue = reviewQueue(allowed);
+  const queue = reviewQueue(allowed, state.myReview);
   const advanced = state.profileLevel === "avancado";
   const minutes = Math.max(3, Math.round(queue.length * 0.7));
 
@@ -90,25 +90,61 @@ function Review() {
               <span className="text-xs text-muted-foreground">{entries.length} itens</span>
             </div>
             <ul className="divide-y divide-border rounded-2xl border border-border bg-card shadow-card">
-              {entries.map(({ id, difficulty }) => {
+              {entries.map(({ id, difficulty, manual }) => {
                 const k = getItem(id);
                 const isKanji = k.script === "kanji";
+                const inMyReview = state.myReview.includes(id);
                 return (
-                  <li key={id}>
+                  <li key={id} className={cn(inMyReview && "bg-primary-soft/45 first:rounded-t-2xl last:rounded-b-2xl")}>
                     <button
                       onClick={() => setOpen(k)}
                       className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 px-4 py-3 text-left"
                     >
-                      <span className="grid size-12 place-items-center rounded-xl bg-muted font-display text-2xl">
+                      <span
+                        className={cn(
+                          "relative grid size-12 place-items-center rounded-xl font-display text-2xl",
+                          inMyReview ? "border border-primary/40 bg-card text-foreground" : "bg-muted",
+                        )}
+                      >
                         {k.char}
+                        {inMyReview ? (
+                          <span
+                            aria-hidden
+                            className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-primary text-primary-foreground ring-2 ring-card"
+                          >
+                            <Check className="size-2.5" strokeWidth={3} />
+                          </span>
+                        ) : null}
                       </span>
                       <div className="min-w-0">
                         <p className="text-xs text-muted-foreground">{isKanji ? k.reading : k.romaji}</p>
                         <p className="truncate font-display text-sm tracking-wide">{isKanji ? k.meaning : k.mnemonic}</p>
+                        <span
+                          className={cn(
+                            "mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]",
+                            inMyReview
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-dashed border-muted-foreground/40 text-muted-foreground",
+                          )}
+                        >
+                          {inMyReview ? (
+                            <>
+                              <Check className="size-2.5" strokeWidth={3} /> Na sua revisão
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="size-2.5" /> Fixar na revisão
+                            </>
+                          )}
+                        </span>
                       </div>
                       {done ? (
                         <span className="rounded-full bg-primary-soft px-3 py-1 font-display text-xs text-accent-foreground">
                           em {intervalLabel(state.srs[id] ?? 0)}
+                        </span>
+                      ) : manual ? (
+                        <span className="rounded-full bg-info px-3 py-1 font-display text-xs tracking-wide text-info-foreground">
+                          Salvo
                         </span>
                       ) : (
                         <DifficultyTag level={difficulty} />

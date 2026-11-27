@@ -38,7 +38,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw) as Partial<AppState>;
-        setState({ ...initialState, ...saved, equipped: { ...initialState.equipped, ...saved.equipped } });
+        setState({
+          ...initialState,
+          ...saved,
+          equipped: { ...initialState.equipped, ...saved.equipped },
+          completedUnits: { ...initialState.completedUnits, ...saved.completedUnits },
+        });
       }
     } catch {
       // ignore corrupted storage

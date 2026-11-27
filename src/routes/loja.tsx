@@ -17,8 +17,9 @@ const TABS: { id: ShopCategory; label: string }[] = [
 ];
 
 export const Route = createFileRoute("/loja")({
-  validateSearch: (search: Record<string, unknown>): { aba?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { aba?: string | undefined; de?: "inicio" | "perfil" | undefined } => ({
     aba: typeof search["aba"] === "string" ? search["aba"] : undefined,
+    de: search["de"] === "inicio" || search["de"] === "perfil" ? search["de"] : undefined,
   }),
   head: () => ({
     meta: [
@@ -33,8 +34,9 @@ export const Route = createFileRoute("/loja")({
 
 function Shop() {
   const { state, actions } = useAppStore();
-  const { aba } = Route.useSearch();
+  const { aba, de } = Route.useSearch();
   const tab = (TABS.find((t) => t.id === aba)?.id ?? "bloqueio") as ShopCategory;
+  const backTo = de === "inicio" ? "/inicio" : "/perfil";
   const balance = xpBalance(state);
   const items = shopItems.filter((i) => i.category === tab);
 
@@ -59,7 +61,7 @@ function Shop() {
     <div className="flex flex-1 flex-col pb-8">
       <div className="sticky top-0 z-20 border-b border-border bg-background/95 px-5 pt-6 pb-3 backdrop-blur">
         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
-          <BackLink to="/perfil" />
+          <BackLink to={backTo} />
           <h1 className="truncate text-center font-display text-2xl tracking-display">Loja</h1>
           <span className="rounded-full bg-flame-soft px-3 py-1 font-display text-sm tabular-nums">⭐ {balance} XP</span>
         </div>
@@ -68,7 +70,7 @@ function Shop() {
             <Link
               key={t.id}
               to="/loja"
-              search={{ aba: t.id }}
+              search={{ aba: t.id, ...(de ? { de } : {}) }}
               replace
               className={cn(
                 "rounded-full py-1.5 text-center font-display text-xs tracking-wide text-muted-foreground",

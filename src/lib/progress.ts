@@ -1,11 +1,15 @@
-import type { ScriptId } from "@/data/kana";
+import { scripts, type ScriptId } from "@/data/kana";
 import { DEFAULT_EQUIPPED, getShopItem, STREAK_FREEZE_ID } from "@/data/shop";
 
 export type LessonResult = {
   correct: number;
   total: number;
   maxCombo: number;
+  /** Number of 5-star combo cycles completed during the lesson (each awards COMBO_BONUS_XP). */
+  combosCompleted?: number | undefined;
   seconds: number;
+  script?: ScriptId | undefined;
+  unitId?: string | undefined;
 };
 
 /** Knowledge level chosen at sign-up; decides which scripts the user studies and reviews. */
@@ -39,6 +43,15 @@ export type AppState = {
   myReview: string[];
   /** Unlocked after 5 correct answers in a row inside a lesson. */
   comboMedal: boolean;
+  /** Unlocked after finishing a lesson with 100% accuracy. */
+  perfectMedal: boolean;
+  /** Unlocked after finishing a lesson in under 1 minute. */
+  fastMedal: boolean;
+  /** Completed unit IDs per script (drives Aprender trail and progress stats). */
+  completedUnits: Record<ScriptId, string[]>;
+  /** Cumulative lesson answer counters (seeded to match demo history). */
+  totalAnswers: number;
+  totalCorrect: number;
   lastLesson: (LessonResult & { xpEarned: number; savedStreak: boolean }) | null;
   /** XP spent in the shop. Level always uses total earned `xp`, so spending never lowers it. */
   xpSpent: number;
@@ -84,6 +97,15 @@ export const initialState: AppState = {
   },
   myReview: [],
   comboMedal: false,
+  perfectMedal: false,
+  fastMedal: false,
+  completedUnits: {
+    hiragana: ["h-u1", "h-u2"],
+    katakana: [],
+    kanji: ["j-u1", "j-u2", "j-u3"],
+  },
+  totalAnswers: 100,
+  totalCorrect: 87,
   lastLesson: null,
   xpSpent: 0,
   streakFreezes: 0,
@@ -99,18 +121,43 @@ export function levelFromXp(xp: number): number {
   return Math.floor(xp / XP_PER_LEVEL) + 1;
 }
 
+export function combosFromResult(result: LessonResult): number {
+  return result.combosCompleted ?? Math.floor(result.maxCombo / COMBO_BONUS_AT);
+}
+
+export function lessonComboXp(result: LessonResult): number {
+  return combosFromResult(result) * COMBO_BONUS_XP;
+}
+
 export function lessonXp(result: LessonResult): number {
-  return LESSON_XP + (result.maxCombo >= COMBO_BONUS_AT ? COMBO_BONUS_XP : 0);
+  return LESSON_XP + lessonComboXp(result);
 }
 
 export function todayTotal(t: TodayXp): number {
   return t.lessons + t.review + t.combo;
 }
 
+export function averageAccuracy(state: AppState): number {
+  if (state.totalAnswers <= 0) return 0;
+  return Math.round((state.totalCorrect / state.totalAnswers) * 100);
+}
+
+export function learnedCharCount(state: AppState, script: ScriptId): number {
+  const done = new Set(state.completedUnits[script]);
+  return scripts[script].units.reduce((n, u) => n + (done.has(u.id) ? u.items.length : 0), 0);
+}
+
 /** Completing a lesson saves today's streak once (+1 day) and always grants XP and +1 lesson. */
 export function applyLessonComplete(state: AppState, result: LessonResult): AppState {
   const xpEarned = lessonXp(result);
   const savedStreak = !state.savedToday;
+  let completedUnits = state.completedUnits;
+  if (result.script && result.unitId && !completedUnits[result.script].includes(result.unitId)) {
+    completedUnits = {
+      ...completedUnits,
+      [result.script]: [...completedUnits[result.script], result.unitId],
+    };
+  }
   return {
     ...state,
     streak: savedStreak ? state.streak + 1 : state.streak,
@@ -123,6 +170,12 @@ export function applyLessonComplete(state: AppState, result: LessonResult): AppS
       combo: state.today.combo + (xpEarned - LESSON_XP),
     },
     lessonsCompleted: state.lessonsCompleted + 1,
+    comboMedal: state.comboMedal || combosFromResult(result) > 0 || result.maxCombo >= COMBO_BONUS_AT,
+    perfectMedal: state.perfectMedal || (result.total > 0 && result.correct === result.total),
+    fastMedal: state.fastMedal || (result.total > 0 && result.seconds <= result.total * 10),
+    completedUnits,
+    totalAnswers: state.totalAnswers + result.total,
+    totalCorrect: state.totalCorrect + result.correct,
     lastLesson: { ...result, xpEarned, savedStreak },
   };
 }

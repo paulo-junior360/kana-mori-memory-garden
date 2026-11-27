@@ -3,8 +3,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Check, Lock, TrendingDown, TrendingUp } from "lucide-react";
 
 import { ProgressBar } from "@/components/kana/brand";
+import { scripts } from "@/data/kana";
 import { useAppStore } from "@/lib/app-store";
-import { DAILY_GOAL_XP, levelFromXp, scriptsForLevel, todayTotal, XP_PER_LEVEL, type TodayXp } from "@/lib/progress";
+import {
+  averageAccuracy,
+  DAILY_GOAL_XP,
+  learnedCharCount,
+  levelFromXp,
+  scriptsForLevel,
+  todayTotal,
+  XP_PER_LEVEL,
+  type TodayXp,
+} from "@/lib/progress";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_tabs/conquistas")({
@@ -53,14 +63,28 @@ function Achievements() {
     { title: "Estudante consistente", desc: "Estude por 7 dias seguidos", progress: Math.min(7, state.streak), goal: 7, medal: "bg-medal-silver", icon: "📅" },
     { title: "Combo perfeito", desc: "Acerte 5 seguidas em uma lição", progress: state.comboMedal ? 1 : 0, goal: 1, medal: "bg-medal-gold", icon: "✨" },
     { title: "Ofensiva de fogo", desc: "Mantenha 30 dias seguidos", progress: Math.min(30, state.streak), goal: 30, medal: "bg-medal-gold", icon: "🔥" },
-    { title: "Mestre do Hiragana", desc: "Complete todos os módulos de Hiragana", progress: 2, goal: 10, medal: "bg-medal-gold", icon: "あ" },
-    { title: "Explorador do Katakana", desc: "Complete o primeiro módulo de Katakana", progress: 0, goal: 1, medal: "bg-medal-silver", icon: "ア" },
+    {
+      title: "Mestre do Hiragana",
+      desc: "Complete todos os módulos de Hiragana",
+      progress: state.completedUnits.hiragana.length,
+      goal: scripts.hiragana.units.length,
+      medal: "bg-medal-gold",
+      icon: "あ",
+    },
+    {
+      title: "Explorador do Katakana",
+      desc: "Complete o primeiro módulo de Katakana",
+      progress: Math.min(1, state.completedUnits.katakana.length),
+      goal: 1,
+      medal: "bg-medal-silver",
+      icon: "ア",
+    },
     { title: "Maratonista", desc: "Conclua 25 lições", progress: Math.min(25, state.lessonsCompleted), goal: 25, medal: "bg-medal-silver", icon: "🏃" },
     { title: "Centena de lições", desc: "Conclua 100 lições", progress: Math.min(100, state.lessonsCompleted), goal: 100, medal: "bg-medal-gold", icon: "💯" },
     { title: "Mil pontos", desc: "Acumule 1.000 XP", progress: Math.min(1000, state.xp), goal: 1000, medal: "bg-medal-bronze", icon: "⭐" },
     { title: "Lenda do XP", desc: "Acumule 5.000 XP", progress: Math.min(5000, state.xp), goal: 5000, medal: "bg-medal-gold", icon: "🌟" },
-    { title: "Nota máxima", desc: "Termine uma lição sem errar nenhuma", progress: state.lastLesson && state.lastLesson.correct === state.lastLesson.total ? 1 : 0, goal: 1, medal: "bg-medal-gold", icon: "🎯" },
-    { title: "Relâmpago", desc: "Termine uma lição em menos de 1 minuto", progress: state.lastLesson && state.lastLesson.seconds < 60 ? 1 : 0, goal: 1, medal: "bg-medal-silver", icon: "⚡" },
+    { title: "Nota máxima", desc: "Termine uma lição sem errar nenhuma", progress: state.perfectMedal ? 1 : 0, goal: 1, medal: "bg-medal-gold", icon: "🎯" },
+    { title: "Relâmpago", desc: "Termine uma lição com média de até 10s por exercício", progress: state.fastMedal ? 1 : 0, goal: 1, medal: "bg-medal-silver", icon: "⚡" },
     { title: "Memória de elefante", desc: "Conclua a revisão do dia", progress: state.reviewDone ? 1 : 0, goal: 1, medal: "bg-medal-bronze", icon: "🐘" },
     { title: "Colecionador", desc: "Guarde 10 caracteres na sua lista de estudo", progress: Math.min(10, state.myReview.length), goal: 10, medal: "bg-medal-bronze", icon: "📌" },
     { title: "Raízes firmes", desc: "Fixe 20 caracteres na memória de longo prazo", progress: Math.min(20, Object.values(state.srs).filter((b) => b >= 3).length), goal: 20, medal: "bg-medal-silver", icon: "🌳" },
@@ -72,11 +96,12 @@ function Achievements() {
       : []),
   ];
 
-  const learned = [
-    { id: "hiragana", name: "Hiragana", n: 10, total: 46 },
-    { id: "katakana", name: "Katakana", n: 0, total: 46 },
-    { id: "kanji", name: "Kanji", n: 12, total: 24 },
-  ].filter((s) => scriptsForLevel(state.profileLevel).includes(s.id as "hiragana"));
+  const learned = scriptsForLevel(state.profileLevel).map((id) => ({
+    id,
+    name: scripts[id].name,
+    n: learnedCharCount(state, id),
+    total: scripts[id].units.reduce((sum, u) => sum + u.items.length, 0),
+  }));
 
   return (
     <div className="px-5 pt-8 pb-8">
@@ -186,7 +211,7 @@ function Achievements() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-primary-soft p-4 text-accent-foreground">
-              <p className="font-display text-2xl">87%</p>
+              <p className="font-display text-2xl">{averageAccuracy(state)}%</p>
               <p className="text-xs">Precisão média</p>
             </div>
             <div className="rounded-2xl bg-warning-soft p-4 text-warning">

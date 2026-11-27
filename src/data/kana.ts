@@ -1,15 +1,9 @@
-import imgAAsset from "@/assets/mnemonic-a.png.asset.json";
-const imgA = imgAAsset.url;
-import imgIAsset from "@/assets/mnemonic-i.png.asset.json";
-const imgI = imgIAsset.url;
-import imgUAsset from "@/assets/mnemonic-u.png.asset.json";
-const imgU = imgUAsset.url;
-import imgEAsset from "@/assets/mnemonic-e.png.asset.json";
-const imgE = imgEAsset.url;
-import imgOAsset from "@/assets/mnemonic-o.png.asset.json";
-const imgO = imgOAsset.url;
-import imgKuAsset from "@/assets/mnemonic-ku.png.asset.json";
-const imgKu = imgKuAsset.url;
+import imgA from "@/assets/mnemonic-a.jpg";
+import imgE from "@/assets/mnemonic-e.jpg";
+import imgI from "@/assets/mnemonic-i.png";
+import imgKu from "@/assets/mnemonic-ku.png";
+import imgO from "@/assets/mnemonic-o.png";
+import imgU from "@/assets/mnemonic-u.jpg";
 
 export type Tone =
   | "green"
@@ -292,12 +286,71 @@ export function getItem(id: string): CharItem {
   return item;
 }
 
+export function getUnit(script: ScriptId, unitId: string): Unit | undefined {
+  return scripts[script].units.find((u) => u.id === unitId);
+}
+
 export function isScriptId(v: string): v is ScriptId {
   return v === "hiragana" || v === "katakana" || v === "kanji";
 }
 
+export type LessonQuestion =
+  | { kind: "choice"; prompt: "image" | "kana" | "romaji"; itemId: string; options: string[]; answer: string }
+  | { kind: "write"; itemId: string };
+
+export const LESSON_VARIATIONS = 4;
+
+/**
+ * Build a complete deterministic lesson covering every character in the unit
+ * across all 4 exercise variations: mnemonic image, kana -> romaji, romaji -> kana, and writing.
+ */
+export function buildUnitQuestions(script: ScriptId, unit: Unit): LessonQuestion[] {
+  const scriptItems = scripts[script].units.flatMap((u) => u.items);
+  const items = unit.items;
+
+  const pickOptions = (target: CharItem, field: "romaji" | "char", offset: number): string[] => {
+    const answer = target[field];
+    const pool = [...items, ...scriptItems];
+    const distractors: string[] = [];
+    for (const candidate of pool) {
+      const val = candidate[field];
+      if (val !== answer && !distractors.includes(val)) {
+        distractors.push(val);
+        if (distractors.length === 3) break;
+      }
+    }
+    const opts = [answer, ...distractors];
+    const shift = offset % opts.length;
+    return [...opts.slice(shift), ...opts.slice(0, shift)];
+  };
+
+  const rotate = (round: number) =>
+    items.map((_, i) => items[(i + round) % items.length]!);
+
+  const choiceRounds: ("image" | "kana" | "romaji")[] = ["image", "kana", "romaji"];
+  const choices: LessonQuestion[] = choiceRounds.flatMap((prompt, round) =>
+    rotate(round).map((item, i) => {
+      const field = prompt === "romaji" ? "char" : "romaji";
+      return {
+        kind: "choice" as const,
+        prompt,
+        itemId: item.id,
+        options: pickOptions(item, field, round + i + 1),
+        answer: item[field],
+      };
+    }),
+  );
+
+  const writes: LessonQuestion[] = rotate(3).map((item) => ({
+    kind: "write" as const,
+    itemId: item.id,
+  }));
+
+  return [...choices, ...writes];
+}
+
 export type Difficulty = "Difícil" | "Médio" | "Fácil";
-export type ReviewEntry = { id: string; difficulty: Difficulty };
+export type ReviewEntry = { id: string; difficulty: Difficulty; manual?: boolean };
 
 /** Items chosen automatically for today's review (the user's hardest from last week), per script. */
 const REVIEW_POOL: Record<ScriptId, ReviewEntry[]> = {
@@ -321,8 +374,19 @@ const REVIEW_POOL: Record<ScriptId, ReviewEntry[]> = {
   ],
 };
 
-/** Today's review queue limited to the scripts the profile studies. Advanced profiles get fewer kana. */
-export function reviewQueue(allowed: ScriptId[]): ReviewEntry[] {
+/** Today's review queue limited to the scripts the profile studies, plus any saved items. */
+export function reviewQueue(allowed: ScriptId[], extraIds: string[] = []): ReviewEntry[] {
   const hasKanji = allowed.includes("kanji");
-  return allowed.flatMap((id) => (hasKanji && id !== "kanji" ? REVIEW_POOL[id].slice(0, 2) : REVIEW_POOL[id]));
+  const base = allowed.flatMap((id) => (hasKanji && id !== "kanji" ? REVIEW_POOL[id].slice(0, 2) : REVIEW_POOL[id]));
+  if (!extraIds.length) return base;
+  const seen = new Set(base.map((e) => e.id));
+  const extras: ReviewEntry[] = [];
+  for (const id of extraIds) {
+    if (seen.has(id)) continue;
+    const item = allItems.find((i) => i.id === id);
+    if (!item || !allowed.includes(item.script)) continue;
+    seen.add(id);
+    extras.push({ id, difficulty: "Médio", manual: true });
+  }
+  return [...base, ...extras];
 }

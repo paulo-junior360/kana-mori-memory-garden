@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import heroAsset from "@/assets/gato.png.asset.json";
-const hero = heroAsset.url;
+import hero from "@/assets/gato.jpg";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -26,23 +25,26 @@ export const Route = createFileRoute("/")({
 
 function Welcome() {
   return (
-    <div className="flex min-h-full flex-1 flex-col px-6 pt-12 pb-8">
+    <div className="flex min-h-full flex-1 flex-col px-6 pt-10 pb-8">
       <div className="animate-rise text-center">
-        <h1 className="font-display text-4xl font-medium tracking-display">KanaMori</h1>
-        <p className="mx-auto mt-3 max-w-[16rem] font-display text-base leading-snug tracking-wide text-muted-foreground">
+        <p className="inline-block rounded-full bg-primary-soft px-4 py-1 font-display text-lg font-semibold tracking-[0.28em] text-primary">
+          かなもり
+        </p>
+        <h1 className="mt-2 font-display text-4xl font-medium tracking-display">KanaMori</h1>
+        <p className="mx-auto mt-2.5 max-w-[16rem] font-display text-base leading-snug tracking-wide text-muted-foreground">
           Aprenda japonês com memórias que ficam
         </p>
       </div>
 
-      <div className="relative -mx-6 my-6 flex flex-1 items-center justify-center">
+      <div className="relative -mx-6 my-5 flex flex-1 items-center justify-center">
         <img
           src={hero}
           alt="Gato malhado sentado sobre uma placa verde de rua japonesa escrita Miyuki Dōri"
-          className="max-h-[440px] w-full object-contain"
+          className="max-h-[430px] w-full object-contain"
         />
         <span
           aria-hidden
-          className="absolute top-4 right-6 font-display text-5xl text-primary/15 [writing-mode:vertical-rl]"
+          className="absolute top-3 left-4 rounded-2xl border border-primary/30 bg-card/90 px-2.5 py-3.5 font-display text-3xl font-semibold tracking-[0.18em] text-primary shadow-card backdrop-blur-sm [writing-mode:vertical-rl]"
         >
           かなもり
         </span>

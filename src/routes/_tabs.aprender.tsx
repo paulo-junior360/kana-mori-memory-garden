@@ -6,9 +6,9 @@ import { toast } from "sonner";
 import { ProgressBar } from "@/components/kana/brand";
 import { Sheet } from "@/components/kana/sheet";
 import { Button } from "@/components/ui/button";
-import { scripts, type ScriptId, type Unit } from "@/data/kana";
+import { LESSON_VARIATIONS, scripts, type ScriptId, type Unit } from "@/data/kana";
 import { useAppStore } from "@/lib/app-store";
-import { scriptsForLevel } from "@/lib/progress";
+import { learnedCharCount, scriptsForLevel } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_tabs/aprender")({
@@ -27,17 +27,8 @@ export const Route = createFileRoute("/_tabs/aprender")({
 
 type Status = "done" | "current" | "locked";
 
-/** Demo progress: how many units are finished in each script. */
-const DONE_UNITS: Record<ScriptId, number> = { hiragana: 2, katakana: 0, kanji: 3 };
 const OFFSETS = [0, 44, 64, 44, 0, -44, -64, -44];
 const LEVEL: Record<ScriptId, string> = { hiragana: "Iniciante", katakana: "Iniciante", kanji: "Intermediário" };
-
-function statusOf(script: ScriptId, i: number): Status {
-  const done = DONE_UNITS[script];
-  if (i < done) return "done";
-  if (i === done) return "current";
-  return "locked";
-}
 
 function Learn() {
   const { state } = useAppStore();
@@ -48,8 +39,15 @@ function Learn() {
   }, [allowed, script]);
   const [open, setOpen] = useState<{ unit: Unit; index: number; status: Status } | null>(null);
   const data = scripts[script];
+  const doneSet = new Set(state.completedUnits[script]);
+  const firstUndone = data.units.findIndex((u) => !doneSet.has(u.id));
+  const statusOf = (unit: Unit, i: number): Status => {
+    if (doneSet.has(unit.id)) return "done";
+    if (i === firstUndone) return "current";
+    return "locked";
+  };
   const total = data.units.reduce((n, u) => n + u.items.length, 0);
-  const learned = data.units.slice(0, DONE_UNITS[script]).reduce((n, u) => n + u.items.length, 0);
+  const learned = learnedCharCount(state, script);
 
   return (
     <div className="px-5 pt-8 pb-8">
@@ -106,7 +104,7 @@ function Learn() {
 
       <div className="relative mt-8 flex flex-col items-center gap-6">
         {data.units.map((unit, i) => {
-          const status = statusOf(script, i);
+          const status = statusOf(unit, i);
           const off = OFFSETS[i % OFFSETS.length]!;
           return (
             <div key={unit.id} className="flex flex-col items-center" style={{ transform: `translateX(${off}px)` }}>
@@ -153,16 +151,34 @@ function Learn() {
         {open ? (
           <>
             <div className="flex flex-wrap gap-2">
-              {open.unit.items.map((it) => (
-                <span
-                  key={it.id}
-                  className="grid h-14 min-w-14 place-items-center rounded-xl bg-muted px-2 font-display text-2xl"
-                >
-                  {it.char}
-                </span>
-              ))}
+              {open.unit.items.map((it) => {
+                const inReview = state.myReview.includes(it.id);
+                return (
+                  <span
+                    key={it.id}
+                    className={cn(
+                      "relative grid h-14 min-w-14 place-items-center rounded-xl px-2 font-display text-2xl",
+                      inReview ? "border border-primary/40 bg-primary-soft text-accent-foreground" : "bg-muted",
+                    )}
+                  >
+                    {it.char}
+                    {inReview ? (
+                      <span
+                        title="Na sua revisão"
+                        className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-primary text-primary-foreground ring-2 ring-card"
+                      >
+                        <Check className="size-2.5" strokeWidth={3} />
+                      </span>
+                    ) : null}
+                  </span>
+                );
+              })}
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
+            <p className="mt-3 text-xs font-medium text-primary">
+              {open.unit.items.length * LESSON_VARIATIONS} exercícios · todos os {open.unit.items.length} caracteres em 4
+              variações (imagem, leitura, reconhecimento e escrita)
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
               {open.status === "done"
                 ? "Unidade concluída! Pratique de novo para fortalecer a memória."
                 : open.status === "current"
@@ -178,7 +194,9 @@ function Learn() {
               </Button>
               {open.status !== "locked" ? (
                 <Button asChild variant="hero" size="xl">
-                  <Link to="/licao">{open.status === "done" ? "Praticar de novo" : "Começar lição"}</Link>
+                  <Link to="/licao" search={{ sistema: script, unidade: open.unit.id }}>
+                    {open.status === "done" ? "Praticar de novo" : "Começar lição"}
+                  </Link>
                 </Button>
               ) : (
                 <Button

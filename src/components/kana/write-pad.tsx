@@ -1,21 +1,43 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
 
+import { evaluateCanvasCharacter, type WriteEvalResult } from "@/lib/write-eval";
 import { cn } from "@/lib/utils";
+
+export type WritePadHandle = {
+  evaluate: () => WriteEvalResult;
+};
 
 /** Finger/mouse drawing area over a faded guide character. */
 export function WritePad({
   char,
   revealed,
+  status = "idle",
   clearSignal,
   onStroke,
+  ref,
 }: {
   char: string;
   revealed: boolean;
+  status?: "idle" | "correct" | "wrong";
   clearSignal: number;
   onStroke: () => void;
+  ref?: Ref<WritePadHandle>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const guideRef = useRef<HTMLSpanElement>(null);
   const drawing = useRef(false);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      evaluate: () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return { ok: false, coverage: 0, precision: 0, reason: "empty" };
+        return evaluateCanvasCharacter(canvas, char, guideRef.current);
+      },
+    }),
+    [char],
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -39,14 +61,24 @@ export function WritePad({
   }
 
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[300px] rounded-2xl border-2 border-foreground/80 bg-card">
+    <div
+      className={cn(
+        "relative mx-auto aspect-square w-full max-w-[300px] rounded-2xl border-2 bg-card transition-colors",
+        status === "idle" && "border-foreground/80",
+        status === "correct" && "border-success bg-primary-soft/30",
+        status === "wrong" && "animate-shake border-destructive bg-destructive-soft/40",
+      )}
+    >
       <span aria-hidden className="absolute inset-y-3 left-1/2 border-l-2 border-dashed border-border" />
       <span aria-hidden className="absolute inset-x-3 top-1/2 border-t-2 border-dashed border-border" />
       <span
+        ref={guideRef}
         aria-hidden
         className={cn(
           "pointer-events-none absolute inset-0 grid place-items-center font-display text-[180px] leading-none transition-all duration-500 select-none",
-          revealed ? "scale-100 text-foreground" : "text-foreground/15",
+          !revealed && "text-foreground/15",
+          revealed && status === "wrong" && "scale-100 text-destructive",
+          revealed && status !== "wrong" && "scale-100 text-foreground",
         )}
       >
         {char}
@@ -57,7 +89,8 @@ export function WritePad({
         aria-label={`Área para escrever ${char}`}
         className={cn(
           "absolute inset-0 size-full touch-none text-link transition-opacity duration-300",
-          revealed && "pointer-events-none opacity-0",
+          revealed && status === "wrong" && "pointer-events-none opacity-35",
+          revealed && status !== "wrong" && "pointer-events-none opacity-0",
         )}
         onPointerDown={(e) => {
           const ctx = e.currentTarget.getContext("2d");

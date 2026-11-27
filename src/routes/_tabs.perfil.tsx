@@ -10,8 +10,9 @@ import { Sheet } from "@/components/kana/sheet";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAppStore } from "@/lib/app-store";
-import { levelFromXp, PROFILE_LABEL, xpBalance, scriptsForLevel, type ProfileLevel } from "@/lib/progress";
+import { levelFromXp, ownsItem, PROFILE_LABEL, xpBalance, scriptsForLevel, type ProfileLevel } from "@/lib/progress";
 import { scripts } from "@/data/kana";
+import { getShopItem, shopItems } from "@/data/shop";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_tabs/perfil")({
@@ -36,6 +37,9 @@ function Profile() {
   const [sheet, setSheet] = useState<Picker>(null);
   const [name, setName] = useState(state.userName);
   const [level, setLevel] = useState<ProfileLevel>(state.profileLevel);
+
+  const currentTheme = getShopItem(state.equipped.tema);
+  const ownedThemes = shopItems.filter((i) => i.category === "tema" && ownsItem(state, i.id));
 
   const progress = [
     { icon: "🎓", label: "Nível atual", value: levelFromXp(state.xp), cls: "text-warning" },
@@ -76,6 +80,7 @@ function Profile() {
 
       <Link
         to="/loja"
+        search={{ de: "perfil" }}
         className="mt-6 flex items-center gap-3 rounded-2xl border border-border bg-[linear-gradient(120deg,var(--primary-soft),var(--card))] p-4 shadow-card active:scale-[0.99]"
       >
         <span className="text-3xl">🛍️</span>
@@ -87,8 +92,6 @@ function Profile() {
         </div>
         <ChevronRight className="size-4 text-muted-foreground" />
       </Link>
-      <div>
-      </div>
 
       <p className="mt-8 mb-3 font-display text-base tracking-wide">Meu progresso:</p>
       <ul className="divide-y divide-border rounded-2xl border border-border bg-card shadow-card">
@@ -119,7 +122,7 @@ function Profile() {
           <button onClick={() => setSheet("theme")} className="flex w-full items-center gap-3 px-4 py-3 text-left">
             <Palette className="size-5 text-muted-foreground" />
             <span className="flex-1 font-display text-sm tracking-wide">Tema</span>
-            <span className="text-sm text-muted-foreground">Claro</span>
+            <span className="text-sm text-muted-foreground">{currentTheme?.name ?? "Mori"}</span>
             <ChevronRight className="size-4 text-muted-foreground" />
           </button>
         </li>
@@ -187,30 +190,61 @@ function Profile() {
         onClose={() => setSheet(null)}
         title={sheet === "theme" ? "Tema" : "Idioma do app"}
       >
-        <ul className="space-y-2">
-          {(sheet === "theme"
-            ? [
-                { label: "Claro", active: true },
-                { label: "Escuro", active: false },
-              ]
-            : [
-                { label: "Português (BR)", active: true },
-                { label: "English", active: false },
-                { label: "Español", active: false },
-              ]
-          ).map((o) => (
-            <li
-              key={o.label}
-              className={cn(
-                "flex items-center justify-between rounded-xl border px-4 py-3",
-                o.active ? "border-primary bg-primary-soft" : "border-border text-muted-foreground",
-              )}
-            >
-              <span className="font-display text-sm tracking-wide">{o.label}</span>
-              {o.active ? <Check className="size-4 text-primary" /> : <span className="text-xs">Em breve</span>}
-            </li>
-          ))}
-        </ul>
+        {sheet === "theme" ? (
+          <div className="space-y-4">
+            <ul className="space-y-2">
+              {ownedThemes.map((t) => {
+                const active = state.equipped.tema === t.id;
+                return (
+                  <li key={t.id}>
+                    <button
+                      onClick={() => {
+                        actions.equipItem(t.id);
+                        toast.success(`Tema ${t.name} aplicado`);
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors",
+                        active ? "border-primary bg-primary-soft" : "border-border bg-card",
+                      )}
+                    >
+                      <span className="text-lg">{t.icon}</span>
+                      <span className="flex-1 font-display text-sm tracking-wide">{t.name}</span>
+                      {active ? <Check className="size-4 text-primary" /> : <span className="text-xs text-primary">Usar</span>}
+                    </button>
+                  </li>
+                );
+              })}
+              <li className="flex items-center justify-between rounded-xl border border-border px-4 py-3 text-muted-foreground">
+                <span className="font-display text-sm tracking-wide">Modo escuro</span>
+                <span className="text-xs">Em breve</span>
+              </li>
+            </ul>
+            <Button asChild variant="soft" size="xl">
+              <Link to="/loja" search={{ aba: "tema", de: "perfil" }} onClick={() => setSheet(null)}>
+                Ver mais temas na Loja
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {[
+              { label: "Português (BR)", active: true },
+              { label: "English", active: false },
+              { label: "Español", active: false },
+            ].map((o) => (
+              <li
+                key={o.label}
+                className={cn(
+                  "flex items-center justify-between rounded-xl border px-4 py-3",
+                  o.active ? "border-primary bg-primary-soft" : "border-border text-muted-foreground",
+                )}
+              >
+                <span className="font-display text-sm tracking-wide">{o.label}</span>
+                {o.active ? <Check className="size-4 text-primary" /> : <span className="text-xs">Em breve</span>}
+              </li>
+            ))}
+          </ul>
+        )}
       </Sheet>
     </div>
   );

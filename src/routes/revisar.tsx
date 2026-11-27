@@ -41,7 +41,7 @@ const RATINGS: { id: Rating; label: string; cls: string }[] = [
 function ReviewSession() {
   const { state, actions } = useAppStore();
   const navigate = useNavigate();
-  const queue = useMemo(() => reviewQueue(scriptsForLevel(state.profileLevel)), [state.profileLevel]);
+  const queue = useMemo(() => reviewQueue(scriptsForLevel(state.profileLevel), state.myReview), [state.profileLevel, state.myReview]);
   const [index, setIndex] = useState(0);
   const [shown, setShown] = useState(false);
   const [ratings, setRatings] = useState<Record<string, Rating>>({});

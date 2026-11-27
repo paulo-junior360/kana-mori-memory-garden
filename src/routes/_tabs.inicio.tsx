@@ -52,11 +52,11 @@ function Home() {
   return (
     <div className="px-5 pt-8 pb-6">
       <div className="grid grid-cols-[1fr_auto_1fr] items-center">
-        <Link to="/loja" search={{ aba: "bloqueio" }} className="justify-self-start rounded-full bg-sky-50 px-2.5 py-1 font-display text-xs tabular-nums" aria-label="Bloqueios de ofensiva">
+        <Link to="/loja" search={{ aba: "bloqueio", de: "inicio" }} className="justify-self-start rounded-full bg-sky-50 px-2.5 py-1 font-display text-xs tabular-nums" aria-label="Bloqueios de ofensiva">
           🧊 {state.streakFreezes}
         </Link>
         <Wordmark className="text-center" />
-        <Link to="/loja" className="justify-self-end rounded-full bg-flame-soft px-2.5 py-1 font-display text-xs tabular-nums" aria-label="Loja">
+        <Link to="/loja" search={{ de: "inicio" }} className="justify-self-end rounded-full bg-flame-soft px-2.5 py-1 font-display text-xs tabular-nums" aria-label="Loja">
           ⭐ {xpBalance(state)}
         </Link>
       </div>
@@ -128,9 +128,9 @@ function Home() {
               <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-muted font-display text-3xl">あ</div>
               <div className="min-w-0 flex-1">
                 <p className="font-display text-base tracking-wide">Lição de Revisão</p>
-                <p className="truncate text-sm text-muted-foreground">Hiragana: a, i, u, e, o</p>
+                <p className="truncate text-sm text-muted-foreground">Hiragana: a, i, u, e, o (20 exercícios)</p>
                 <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="size-3.5" /> 3 min
+                  <Clock className="size-3.5" /> 5 min
                 </p>
               </div>
               <ChevronRight className="size-5 text-muted-foreground" />
