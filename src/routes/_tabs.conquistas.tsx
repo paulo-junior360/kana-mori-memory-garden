@@ -68,7 +68,7 @@ function Achievements() {
     { title: "Cem dias de sakura", desc: "Mantenha 100 dias seguidos", progress: Math.min(100, state.streak), goal: 100, medal: "bg-medal-gold", icon: "🌸" },
     ...(advanced
       ? [{ title: "Caçador de Kanji", desc: "Revise 50 kanjis", progress: state.reviewDone ? 16 : 12, goal: 50, medal: "bg-medal-gold", icon: "字" },
-          { title: "Sábio do Kanji", desc: "Fixe 10 kanjis na memória de longo prazo", progress: Math.min(10, Object.entries(state.srs).filter(([id, b]) => id.startsWith("kanji") && b >= 3).length), goal: 10, medal: "bg-medal-gold", icon: "🏯" }]
+          { title: "Sábio do Kanji", desc: "Fixe 10 kanjis na memória de longo prazo", progress: Math.min(10, Object.entries(state.srs).filter(([id, b]) => id.startsWith("j-") && b >= 3).length), goal: 10, medal: "bg-medal-gold", icon: "🏯" }]
       : []),
   ];
 
