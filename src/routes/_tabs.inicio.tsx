@@ -130,7 +130,7 @@ function Home() {
                 <p className="font-display text-base tracking-wide">Lição de Revisão</p>
                 <p className="truncate text-sm text-muted-foreground">Hiragana: a, i, u, e, o (20 exercícios)</p>
                 <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="size-3.5" /> 5 min
+                  <Clock className="size-3.5" /> 2 min
                 </p>
               </div>
               <ChevronRight className="size-5 text-muted-foreground" />

@@ -46,7 +46,7 @@ export const Route = createFileRoute("/licao")({
 });
 
 const DEFAULT_QUESTIONS = buildUnitQuestions("hiragana", hiraganaUnits[0]!);
-const SECONDS_PER_QUESTION = 20;
+const TOTAL_SECONDS = 120;
 
 function fmt(s: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -62,7 +62,6 @@ function Lesson() {
     () => (sistema && unit ? buildUnitQuestions(sistema, unit) : DEFAULT_QUESTIONS),
     [sistema, unit],
   );
-  const totalSeconds = Math.max(120, questions.length * SECONDS_PER_QUESTION);
   const backTo = sistema ? "/aprender" : "/inicio";
 
   const [index, setIndex] = useState(0);
@@ -74,7 +73,7 @@ function Lesson() {
   const [comboCelebrating, setComboCelebrating] = useState(false);
   const [correct, setCorrect] = useState(0);
   const [justScored, setJustScored] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(totalSeconds);
+  const [timeLeft, setTimeLeft] = useState(TOTAL_SECONDS);
   const [phase, setPhase] = useState<"playing" | "done" | "timeout">("playing");
   const [exitOpen, setExitOpen] = useState(false);
   const [strokes, setStrokes] = useState(0);
@@ -183,7 +182,7 @@ function Lesson() {
         total: questions.length,
         maxCombo,
         combosCompleted,
-        seconds: totalSeconds - timeLeft,
+        seconds: TOTAL_SECONDS - timeLeft,
         ...(sistema && unit ? { script: sistema, unitId: unit.id } : {}),
       };
       setResult({ ...r, xp: lessonXp(r), savedStreak: !state.savedToday });
@@ -216,7 +215,7 @@ function Lesson() {
     setComboCelebrating(false);
     setCorrect(0);
     setJustScored(false);
-    setTimeLeft(totalSeconds);
+    setTimeLeft(TOTAL_SECONDS);
     setStrokes(0);
     setRevealed(false);
     setWriteEval(null);
